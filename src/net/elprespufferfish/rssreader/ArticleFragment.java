@@ -1,10 +1,13 @@
 package net.elprespufferfish.rssreader;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -23,7 +26,17 @@ public class ArticleFragment extends Fragment {
 
         ((TextView) view.findViewById(R.id.title)).setText(arguments.getString(TITLE_KEY));
 
-        ((TextView) view.findViewById(R.id.link)).setText(arguments.getString(LINK_KEY));
+        TextView link = (TextView) view.findViewById(R.id.link);
+        final String linkAddress = arguments.getString(LINK_KEY);
+        link.setText(linkAddress);
+        link.setClickable(true);
+        link.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkAddress));
+                ArticleFragment.this.startActivity(intent);
+            }
+        });
 
         WebView webView = (WebView) view.findViewById(R.id.description);
         webView.setWebChromeClient(new WebChromeClient()); // HTML5 video requires a WebChromeClient
