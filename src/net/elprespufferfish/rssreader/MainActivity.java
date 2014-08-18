@@ -12,10 +12,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.app.ProgressDialog;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -88,10 +92,32 @@ public class MainActivity extends FragmentActivity {
     }
 
     private List<String> getFeeds() {
-        List<String> feeds = new LinkedList<String>();
-        feeds.add("http://cuteoverload.com/feed/"); // content:encoded
-        feeds.add("http://cabinporn.com/rss"); // no inline content
-        return feeds;
+        DatabaseHelper databaseHelper = new DatabaseHelper(this);
+        SQLiteDatabase database = databaseHelper.getReadableDatabase();
+        try {
+            Cursor feedCursor = database.query(
+                    FeedTable.TABLE_NAME,
+                    new String[] { FeedTable.FEED_NAME, FeedTable.FEED_URL },
+                    null,
+                    null,
+                    null,
+                    null,
+                    null);
+            try {
+                feedCursor.moveToFirst();
+                List<String> feeds = new LinkedList<String>();
+                while (!feedCursor.isAfterLast()) {
+                    String feedUrl = feedCursor.getString(1);
+                    feeds.add(feedUrl);
+                    feedCursor.moveToNext();
+                }
+                return feeds;
+            } finally {
+                feedCursor.close();
+            }
+        } finally {
+            database.close();
+        }
     }
 
     private List<Article> parseFeed(String feedAddress) {
