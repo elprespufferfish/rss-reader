@@ -3,6 +3,7 @@ package net.elprespufferfish.rssreader;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,7 +63,15 @@ public class MainActivity extends FragmentActivity {
                 }
 
                 // sort by date
-                Collections.sort(allArticles);
+                Collections.sort(allArticles, new Comparator<Article>() {
+                    /**
+                     * Sort newest to oldest
+                     */
+                    @Override
+                    public int compare(Article lhs, Article rhs) {
+                        return rhs.getPublicationDate().compareTo(lhs.getPublicationDate());
+                    }
+                });
                 Log.i("rss-reader", "Done parsing feeds in the background");
                 return allArticles;
             }

@@ -19,7 +19,7 @@ import android.util.Log;
  *
  * @author elprespufferfish
  */
-public class Article implements Comparable<Article> {
+public class Article {
 
     private static final DateTimeFormatter[] RFC822_FORMATTERS = new DateTimeFormatter[] {
             DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss Z"),
@@ -177,14 +177,6 @@ public class Article implements Comparable<Article> {
 
     public String getDescription() {
         return description;
-    }
-
-    /**
-     * Sort newest to oldest
-     */
-    @Override
-    public int compareTo(Article another) {
-        return another.getPublicationDate().compareTo(this.getPublicationDate());
     }
 
 }
