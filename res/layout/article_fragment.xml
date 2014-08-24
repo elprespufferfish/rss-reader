@@ -30,15 +30,6 @@
 	        android:ems="10"
 	        android:layout_toLeftOf="@id/share" />
 
-	    <TextView
-	        android:id="@+id/link"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:ems="10"
-	        android:layout_gravity="bottom"
-	        android:layout_below="@id/title"
-	        android:layout_toLeftOf="@id/share" />
-
     </RelativeLayout>
 
 </LinearLayout>

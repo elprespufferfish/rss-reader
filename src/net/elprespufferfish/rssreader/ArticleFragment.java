@@ -26,13 +26,11 @@ public class ArticleFragment extends Fragment {
         Bundle arguments = getArguments();
 
         final String title = arguments.getString(TITLE_KEY);
-        ((TextView) view.findViewById(R.id.title)).setText(title);
-
         final String linkAddress = arguments.getString(LINK_KEY);
-        TextView link = (TextView) view.findViewById(R.id.link);
-        link.setText(linkAddress);
-        link.setClickable(true);
-        link.setOnClickListener(new OnClickListener() {
+        TextView titleView = ((TextView) view.findViewById(R.id.title));
+        titleView.setText(title);
+        titleView.setClickable(true);
+        titleView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkAddress));
