@@ -105,7 +105,7 @@ public class Article implements Comparable<Article> {
             String imageAddress = getOpenGraphContent(document, "image");
             return "<html><body><img src=\"" + imageAddress + "\" width=\"100%\"/></body></html>";
         } catch (Exception e) {
-            Log.e("rss-reader", "Could not crawl for opengraph content", e);
+            Log.e("rss-reader", "Could not crawl for opengraph content: " + e.getMessage());
         }
         return null;
     }
