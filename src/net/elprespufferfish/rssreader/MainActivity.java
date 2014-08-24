@@ -3,8 +3,13 @@ package net.elprespufferfish.rssreader;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -29,11 +34,33 @@ public class MainActivity extends FragmentActivity {
             @Override
             protected List<Article> doInBackground(Void... params) {
                 Log.i("rss-reader", "Parsing feeds in the background");
-                List<Article> allArticles = new LinkedList<Article>();
-                for (String feedAddress : getFeeds()) {
-                    List<Article> articles = parseFeed(feedAddress);
-                    allArticles.addAll(articles);
+                final List<Article> allArticles = Collections.synchronizedList(new LinkedList<Article>());
+
+                ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+                Set<AsyncTask<String, Void, Void>> tasks = new HashSet<AsyncTask<String, Void, Void>>();
+                for (final String feed : getFeeds()) {
+                    AsyncTask<String, Void, Void> articleFetchingTask = new AsyncTask<String, Void, Void>() {
+                        @Override
+                        protected Void doInBackground(String... feeds) {
+                            List<Article> articles = parseFeed(feeds[0]);
+                            allArticles.addAll(articles);
+                            return null;
+                        }
+                    }.executeOnExecutor(executor, feed);
+                    tasks.add(articleFetchingTask);
                 }
+
+                for (AsyncTask<String, Void, Void> task : tasks) {
+                    try {
+                        task.get();
+                    } catch (InterruptedException e) {
+                        Log.e("rss-reader", "Could not get articles", e);
+                    } catch (ExecutionException e) {
+                        Log.e("rss-reader", "Could not get articles", e);
+                    }
+                }
+
                 // sort by date
                 Collections.sort(allArticles);
                 Log.i("rss-reader", "Done parsing feeds in the background");
