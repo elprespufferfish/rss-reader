@@ -21,7 +21,10 @@ import android.util.Log;
  */
 public class Article implements Comparable<Article> {
 
-    private static final DateTimeFormatter RFC822_FORMATTER = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss Z");
+    private static final DateTimeFormatter[] RFC822_FORMATTERS = new DateTimeFormatter[] {
+            DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss Z"),
+            DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z")
+    };
 
     /**
      * @return parsed {@link Article} from XML stream.
@@ -58,7 +61,19 @@ public class Article implements Comparable<Article> {
                         builder.setDescription(openGraphContent);
                     }
                 } else if ("".equals(namespace) && "pubDate".equals(nodeName)) {
-                    builder.setPublicationDate(RFC822_FORMATTER.parseDateTime(text));
+                    DateTime publicationDate = null;
+                    for (DateTimeFormatter dateTimeFormatter : RFC822_FORMATTERS) {
+                        try {
+                            publicationDate = dateTimeFormatter.parseDateTime(text);
+                            break;
+                        } catch (IllegalArgumentException e) {
+                            // ignore
+                        }
+                    }
+                    if (publicationDate == null) {
+                        throw new IllegalArgumentException("Could not parse " + text);
+                    }
+                    builder.setPublicationDate(publicationDate);
                 } else if ("".equals(namespace) && "description".equals(nodeName)) {
                     if (!hasOpenGraphContent) {
                         // fall back to plain description if nothing better is available
