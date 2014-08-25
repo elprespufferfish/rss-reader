@@ -1,5 +1,8 @@
 package net.elprespufferfish.rssreader;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +33,7 @@ public class MainActivity extends FragmentActivity {
             @Override
             protected Void doInBackground(Void... params) {
                 LOGGER.info("Parsing feeds in the background");
+                long startTime = System.nanoTime();
 
                 ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
@@ -62,7 +66,9 @@ public class MainActivity extends FragmentActivity {
                 }
 
                 database.close();
-                LOGGER.info("Done parsing feeds in the background");
+                long endTime = System.nanoTime();
+                long durationMs = MILLISECONDS.convert(endTime - startTime, NANOSECONDS);
+                LOGGER.info("Done parsing feeds in the background in " + durationMs + "ms");
 
                 return null;
             }

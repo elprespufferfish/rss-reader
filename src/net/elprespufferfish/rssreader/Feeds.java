@@ -1,5 +1,8 @@
 package net.elprespufferfish.rssreader;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -55,6 +58,8 @@ public class Feeds {
 
     public static void parseFeed(Context context, SQLiteDatabase database, String feedAddress) throws IOException, XmlPullParserException {
         LOGGER.info("Attempting to parse " + feedAddress);
+        long startTime = System.nanoTime();
+
         int feedId = getFeedId(database, feedAddress);
         String latestGuid = getLatestGuid(database, feedId);
         List<Article> articles = parseArticles(database, feedAddress, latestGuid);
@@ -88,7 +93,9 @@ public class Feeds {
         } finally {
             database.endTransaction();
         }
-        LOGGER.info("Finished parsing " + feedAddress);
+        long endTime = System.nanoTime();
+        long durationMs = MILLISECONDS.convert(endTime - startTime, NANOSECONDS);
+        LOGGER.info("Finished parsing " + feedAddress + " in " + durationMs + "ms");
     }
 
     private static int getFeedId(SQLiteDatabase database, String feedAddress) {
