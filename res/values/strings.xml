@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MainActivity</string>
+    <string name="app_name">RSS Reader</string>
     <string name="share_title">Share Article</string>
+    <string name="loading_articles">Loading new articles&#8230;</string>
 </resources>

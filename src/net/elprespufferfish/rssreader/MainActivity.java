@@ -27,7 +27,7 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        final ProgressDialog dialog = ProgressDialog.show(this, "", "Loading new articles...", true);
+        final ProgressDialog dialog = ProgressDialog.show(this, "", getString(R.string.loading_articles), true);
 
         new AsyncTask<Void, Void, Void>() {
             @Override
