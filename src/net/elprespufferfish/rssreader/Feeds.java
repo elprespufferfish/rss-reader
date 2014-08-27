@@ -6,57 +6,95 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
 import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
 
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.os.AsyncTask;
 
 public class Feeds {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Feeds.class);
+    private static final int MAX_AGE_DAYS = 14; // do not store articles older than tis
 
-    public static List<String> getFeeds(Context context) {
-        DatabaseHelper databaseHelper = new DatabaseHelper(context);
-        SQLiteDatabase database = databaseHelper.getReadableDatabase();
-        try {
-            Cursor feedCursor = database.query(
-                    FeedTable.TABLE_NAME,
-                    new String[] { FeedTable.FEED_NAME, FeedTable.FEED_URL },
-                    null,
-                    null,
-                    null,
-                    null,
-                    null);
-            try {
-                feedCursor.moveToFirst();
-                List<String> feeds = new LinkedList<String>();
-                while (!feedCursor.isAfterLast()) {
-                    String feedUrl = feedCursor.getString(1);
-                    feeds.add(feedUrl);
-                    feedCursor.moveToNext();
+    public static void refresh(final SQLiteDatabase database) {
+        LOGGER.info("Starting refresh");
+        long startTime = System.nanoTime();
+
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+        Set<AsyncTask<String, Void, Void>> tasks = new HashSet<AsyncTask<String, Void, Void>>();
+        for (final String feed : getFeeds(database)) {
+            AsyncTask<String, Void, Void> articleFetchingTask = new AsyncTask<String, Void, Void>() {
+                @Override
+                protected Void doInBackground(String... feeds) {
+                    String feedAddress = feeds[0];
+                    try {
+                        parseFeed(database, feedAddress);
+                    } catch (Exception e) {
+                        LOGGER.error("Could not parse feed " + feedAddress, e);
+                    }
+                    return null;
                 }
-                return feeds;
-            } finally {
-                feedCursor.close();
+            }.executeOnExecutor(executor, feed);
+            tasks.add(articleFetchingTask);
+        }
+
+        for (AsyncTask<String, Void, Void> task : tasks) {
+            try {
+                task.get();
+            } catch (Exception e) {
+                LOGGER.error("Could not get articles", e);
             }
+        }
+
+        long endTime = System.nanoTime();
+        long durationMs = MILLISECONDS.convert(endTime - startTime, NANOSECONDS);
+        LOGGER.info("Refresh complete in " + durationMs + "ms");
+
+        removeOldArticles(database);
+    }
+
+    private static List<String> getFeeds(SQLiteDatabase database) {
+        Cursor feedCursor = database.query(
+                FeedTable.TABLE_NAME,
+                new String[] { FeedTable.FEED_NAME, FeedTable.FEED_URL },
+                null,
+                null,
+                null,
+                null,
+                null);
+        try {
+            feedCursor.moveToFirst();
+            List<String> feeds = new LinkedList<String>();
+            while (!feedCursor.isAfterLast()) {
+                String feedUrl = feedCursor.getString(1);
+                feeds.add(feedUrl);
+                feedCursor.moveToNext();
+            }
+            return feeds;
         } finally {
-            database.close();
+            feedCursor.close();
         }
     }
 
-    public static void parseFeed(Context context, SQLiteDatabase database, String feedAddress) throws IOException, XmlPullParserException {
+    private static void parseFeed(SQLiteDatabase database, String feedAddress) throws IOException, XmlPullParserException {
         LOGGER.info("Attempting to parse " + feedAddress);
         long startTime = System.nanoTime();
 
@@ -149,6 +187,8 @@ public class Feeds {
 
             List<Article> articles = new LinkedList<Article>();
 
+            DateTime maxArticleAge = DateTime.now().minusDays(MAX_AGE_DAYS);
+
             int eventType = xmlPullParser.getEventType();
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 switch (eventType) {
@@ -158,6 +198,11 @@ public class Feeds {
 
                         if (latestGuid != null && latestGuid.equals(article.getGuid())) {
                             // already read this part of the feed
+                            return articles;
+                        }
+
+                        if (article.getPublicationDate().isBefore(maxArticleAge)) {
+                            // too far back in feed
                             return articles;
                         }
 
@@ -175,6 +220,21 @@ public class Feeds {
         } finally {
             feedInput.close();
         }
+    }
+
+    private static void removeOldArticles(SQLiteDatabase database) {
+        LOGGER.info("Deleting old articles");
+        long startTime = System.nanoTime();
+
+        DateTime oldestDate = DateTime.now().minusDays(MAX_AGE_DAYS);
+        int deletedRows = database.delete(
+                ArticleTable.TABLE_NAME,
+                "? < ?",
+                new String[] { ArticleTable.ARTICLE_PUBLICATION_DATE, String.valueOf(oldestDate.getMillis()) });
+
+        long endTime = System.nanoTime();
+        long durationMs = MILLISECONDS.convert(endTime - startTime, NANOSECONDS);
+        LOGGER.info("Done deleting {} old articles in {}ms", deletedRows, durationMs);
     }
 
     private Feeds() {
