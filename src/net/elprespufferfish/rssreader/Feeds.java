@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
 import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
@@ -31,9 +32,34 @@ import android.os.AsyncTask;
 public class Feeds {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Feeds.class);
-    private static final int MAX_AGE_DAYS = 14; // do not store articles older than tis
+    private static final int MAX_AGE_DAYS = 14; // do not store articles older than this
 
-    public static void refresh(final SQLiteDatabase database) {
+    private static Feeds INSTANCE;
+
+    public static Feeds initialize() {
+        if (INSTANCE != null) throw new IllegalStateException("initialize() called twice");
+        INSTANCE = new Feeds();
+        return INSTANCE;
+    }
+
+    public static Feeds getInstance() {
+        if (INSTANCE == null) throw new IllegalStateException("getInstance called before initialize()");
+        return INSTANCE;
+    }
+
+    private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
+
+    private Feeds() {}
+
+    /**
+     * Trigger a refresh of all feeds
+     * @return true iff a refresh was started
+     */
+    public boolean refresh(final SQLiteDatabase database) {
+        if (!isRefreshInProgress.compareAndSet(false, true)) {
+            LOGGER.info("Refresh already in progress");
+            return false;
+        }
         LOGGER.info("Starting refresh");
         long startTime = System.nanoTime();
 
@@ -69,9 +95,10 @@ public class Feeds {
         LOGGER.info("Refresh complete in " + durationMs + "ms");
 
         removeOldArticles(database);
+        return isRefreshInProgress.getAndSet(false);
     }
 
-    private static List<String> getFeeds(SQLiteDatabase database) {
+    private List<String> getFeeds(SQLiteDatabase database) {
         Cursor feedCursor = database.query(
                 FeedTable.TABLE_NAME,
                 new String[] { FeedTable.FEED_NAME, FeedTable.FEED_URL },
@@ -94,7 +121,7 @@ public class Feeds {
         }
     }
 
-    private static void parseFeed(SQLiteDatabase database, String feedAddress) throws IOException, XmlPullParserException {
+    private void parseFeed(SQLiteDatabase database, String feedAddress) throws IOException, XmlPullParserException {
         LOGGER.info("Attempting to parse " + feedAddress);
         long startTime = System.nanoTime();
 
@@ -136,7 +163,7 @@ public class Feeds {
         LOGGER.info("Finished parsing " + feedAddress + " in " + durationMs + "ms");
     }
 
-    private static int getFeedId(SQLiteDatabase database, String feedAddress) {
+    private int getFeedId(SQLiteDatabase database, String feedAddress) {
         Cursor feedCursor = database.query(
                 FeedTable.TABLE_NAME,
                 new String[] { FeedTable._ID, FeedTable.FEED_URL },
@@ -154,7 +181,7 @@ public class Feeds {
         }
     }
 
-    private static String getLatestGuid(SQLiteDatabase database, int feedId) {
+    private String getLatestGuid(SQLiteDatabase database, int feedId) {
         Cursor latestGuidCursor = database.query(
                 ArticleTable.TABLE_NAME,
                 new String[] { ArticleTable.ARTICLE_GUID },
@@ -176,7 +203,7 @@ public class Feeds {
         }
     }
 
-    private static List<Article> parseArticles(SQLiteDatabase database, String feedAddress, String latestGuid) throws IOException, XmlPullParserException {
+    private List<Article> parseArticles(SQLiteDatabase database, String feedAddress, String latestGuid) throws IOException, XmlPullParserException {
         URL feedUrl = new URL(feedAddress);
         InputStream feedInput = feedUrl.openStream();
         try {
@@ -222,7 +249,7 @@ public class Feeds {
         }
     }
 
-    private static void removeOldArticles(SQLiteDatabase database) {
+    private void removeOldArticles(SQLiteDatabase database) {
         LOGGER.info("Deleting old articles");
         long startTime = System.nanoTime();
 
@@ -237,7 +264,4 @@ public class Feeds {
         LOGGER.info("Done deleting {} old articles in {}ms", deletedRows, durationMs);
     }
 
-    private Feeds() {
-        // prevent instantiation
-    }
 }

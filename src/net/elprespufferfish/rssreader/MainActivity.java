@@ -1,11 +1,18 @@
 package net.elprespufferfish.rssreader;
 
+import static android.widget.Toast.LENGTH_SHORT;
 import android.app.ProgressDialog;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity {
 
@@ -22,7 +29,7 @@ public class MainActivity extends FragmentActivity {
                 DatabaseHelper databaseHelper = new DatabaseHelper(MainActivity.this);
                 SQLiteDatabase database = databaseHelper.getWritableDatabase();
                 try {
-                    Feeds.refresh(database);
+                    Feeds.getInstance().refresh(database);
                 } finally {
                     database.close();
                 }
@@ -38,5 +45,32 @@ public class MainActivity extends FragmentActivity {
             }
 
         }.execute();
+
+        ListView drawer = (ListView) findViewById(R.id.left_drawer);
+        drawer.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_item, new String[] { "Refresh" }));
+        drawer.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                new AsyncTask<Void, Void, Boolean>() {
+                    @Override
+                    protected Boolean doInBackground(Void... params) {
+                        DatabaseHelper databaseHelper = new DatabaseHelper(MainActivity.this);
+                        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+                        return Feeds.getInstance().refresh(database);
+                    }
+
+                    @Override
+                    protected void onPostExecute(Boolean wasRefreshStarted) {
+                        if (!wasRefreshStarted) {
+                            Toast.makeText(
+                                    MainActivity.this,
+                                    MainActivity.this.getString(R.string.refresh_already_started),
+                                    LENGTH_SHORT)
+                                    .show();
+                        }
+                    }
+                }.execute();
+            }
+        });
     }
 }

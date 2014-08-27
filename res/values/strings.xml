@@ -3,4 +3,5 @@
     <string name="app_name">RSS Reader</string>
     <string name="share_title">Share Article</string>
     <string name="loading_articles">Loading new articles&#8230;</string>
+    <string name="refresh_already_started">Refresh Already in Progress&#8230;</string>
 </resources>
