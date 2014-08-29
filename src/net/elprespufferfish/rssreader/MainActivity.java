@@ -22,7 +22,7 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        new RefreshTask(this).execute();
+        reloadPager();
 
         ListView drawer = (ListView) findViewById(R.id.left_drawer);
         drawer.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_item, new String[] { "Refresh" }));
@@ -32,6 +32,11 @@ public class MainActivity extends FragmentActivity {
                 new RefreshTask(MainActivity.this).execute();
             }
         });
+    }
+
+    private void reloadPager() {
+        ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.setAdapter(new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this));
     }
 
     private class RefreshTask extends AsyncTask<Void, Void, Boolean> {
@@ -71,8 +76,7 @@ public class MainActivity extends FragmentActivity {
                         LENGTH_SHORT)
                         .show();
             } else {
-                ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-                viewPager.setAdapter(new ArticlePagerAdapter(MainActivity.this.getSupportFragmentManager(), MainActivity.this));
+                MainActivity.this.reloadPager();
             }
         }
     }
