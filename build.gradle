@@ -1,0 +1,38 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.2.3'
+    }
+}
+defaultTasks 'build'
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 22
+    buildToolsVersion '22.0.1'
+
+    defaultConfig {
+        targetSdkVersion 22
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.android.support:support-v4:21.0.0'
+    compile 'joda-time:joda-time:2.8.1'
+    compile 'org.jsoup:jsoup:1.8.2'
+    compile 'org.slf4j:slf4j-android:1.7.12'
+    compile 'org.slf4j:slf4j-api:1.7.12'
+}
+
