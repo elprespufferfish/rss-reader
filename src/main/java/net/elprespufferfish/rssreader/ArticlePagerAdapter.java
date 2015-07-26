@@ -6,21 +6,26 @@ import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
 import org.joda.time.DateTime;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v7.widget.ShareActionProvider;
 
 public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
     private final SQLiteDatabase database;
+    private final ShareActionProvider shareActionProvider;
 
-    public ArticlePagerAdapter(FragmentManager fm, Context context) {
+    public ArticlePagerAdapter(FragmentManager fm, Context context, ShareActionProvider shareActionProvider) {
         super(fm);
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         this.database = databaseHelper.getReadableDatabase();
+
+        this.shareActionProvider = shareActionProvider;
     }
 
     @Override
@@ -61,4 +66,16 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
             articleCountCursor.close();
         }
     }
+
+    private void shareArticle(Article article) {
+        String textToShare = article.getTitle() + "\n\n" + article.getLink();
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_SUBJECT, article.getTitle());
+        intent.putExtra(Intent.EXTRA_TEXT, textToShare);
+        intent.setType("text/plain");
+
+        shareActionProvider.setShareIntent(intent);
+    }
+
 }

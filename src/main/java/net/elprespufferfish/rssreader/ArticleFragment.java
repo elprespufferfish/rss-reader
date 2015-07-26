@@ -11,7 +11,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 public class ArticleFragment extends Fragment {
@@ -43,20 +42,6 @@ public class ArticleFragment extends Fragment {
         webView.setWebChromeClient(new WebChromeClient()); // HTML5 video requires a WebChromeClient
         enableJavaScript(webView);
         webView.loadData(description, "text/html", null);
-
-        ImageButton shareButton = (ImageButton) view.findViewById(R.id.share);
-        shareButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String textToShare = title + "\n\n" + linkAddress;
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_SEND);
-                intent.putExtra(Intent.EXTRA_SUBJECT, title);
-                intent.putExtra(Intent.EXTRA_TEXT, textToShare);
-                intent.setType("text/plain");
-                startActivity(Intent.createChooser(intent, getResources().getText(R.string.share_title)));
-            }
-        });
 
         return view;
     }
