@@ -1,7 +1,9 @@
 package net.elprespufferfish.rssreader;
 
 import android.app.Application;
+import android.os.Build;
 import android.os.StrictMode;
+import android.webkit.WebView;
 
 public class RssReaderApplication extends Application {
 
@@ -23,6 +25,9 @@ public class RssReaderApplication extends Application {
                     .penaltyDeath()
                     .build());
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                WebView.setWebContentsDebuggingEnabled(true);
+            }
         }
     }
 }
