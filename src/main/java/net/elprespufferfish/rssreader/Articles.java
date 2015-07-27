@@ -105,7 +105,8 @@ public class Articles {
         try {
             Document document = Jsoup.connect(articleAddress).get();
             String imageAddress = getOpenGraphContent(document, "image");
-            return "<html><body><img src=\"" + imageAddress + "\" width=\"100%\"/></body></html>";
+            if (imageAddress == null) return null;
+            else return "<html><body><img src=\"" + imageAddress + "\" width=\"100%\"/></body></html>";
         } catch (Exception e) {
             LOGGER.error("Could not crawl for opengraph content: " + e.getMessage());
         }
