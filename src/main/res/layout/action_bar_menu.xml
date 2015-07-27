@@ -1,10 +1,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:yourapp="http://schemas.android.com/apk/res-auto">
+        xmlns:yourapp="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:ignore="MissingPrefix">
     <item android:id="@+id/action_refresh"
         android:icon="@drawable/ic_menu_refresh"
         android:title="@string/action_refresh"/>
     <item android:id="@+id/action_share"
-        android:icon="@drawable/ic_action_share"
+        android:icon="@drawable/ic_menu_share"
         android:title="@string/action_share"
         yourapp:showAsAction="ifRoom"
         yourapp:actionProviderClass="android.support.v7.widget.ShareActionProvider"/>
