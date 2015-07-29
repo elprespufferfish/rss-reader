@@ -1,9 +1,15 @@
 package net.elprespufferfish.rssreader;
 
+import android.app.AlarmManager;
 import android.app.Application;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.StrictMode;
 import android.webkit.WebView;
+
+import java.util.Calendar;
 
 public class RssReaderApplication extends Application {
 
@@ -12,6 +18,8 @@ public class RssReaderApplication extends Application {
         super.onCreate();
 
         Feeds.initialize();
+
+        scheduleRefresh();
 
         if (BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
@@ -29,5 +37,21 @@ public class RssReaderApplication extends Application {
                 WebView.setWebContentsDebuggingEnabled(true);
             }
         }
+    }
+
+    public void scheduleRefresh() {
+        Calendar startTime = Calendar.getInstance();
+        startTime.setTimeInMillis(System.currentTimeMillis());
+        startTime.set(Calendar.HOUR_OF_DAY, 8);
+
+        Intent refreshIntent = new Intent(this, RefreshService.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, refreshIntent, 0);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager.setInexactRepeating(
+                AlarmManager.ELAPSED_REALTIME,
+                startTime.getTimeInMillis(),
+                AlarmManager.INTERVAL_DAY,
+                pendingIntent);
     }
 }
