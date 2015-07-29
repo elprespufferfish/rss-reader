@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">RSS Reader</string>
-    <string name="action_refresh">Refresh</string>
+    <string-array name="drawer_items">
+        <item>Refresh</item>
+    </string-array>
     <string name="action_share">Share Article</string>
     <string name="loading_articles">Loading new articles&#8230;</string>
     <string name="refresh_already_started">Refresh Already in Progress&#8230;</string>
+    <string name="drawer_open">Open Drawer</string>
+    <string name="drawer_close">Close Drawer</string>
 </resources>
