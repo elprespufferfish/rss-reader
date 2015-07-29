@@ -1,13 +1,18 @@
 package net.elprespufferfish.rssreader;
 
+import static android.widget.Toast.LENGTH_LONG;
 import static android.widget.Toast.LENGTH_SHORT;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -22,11 +27,44 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.util.Arrays;
-
 public class MainActivity extends ActionBarActivity {
 
+    private BroadcastReceiver refreshCompletionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            refreshDialog.dismiss();
+
+            boolean didRefreshComplete = intent.getBooleanExtra(RefreshService.DID_REFRESH_COMPLETE, Boolean.FALSE);
+            if (!didRefreshComplete) {
+                Toast.makeText(
+                        MainActivity.this,
+                        MainActivity.this.getString(R.string.refresh_failed),
+                        LENGTH_LONG)
+                        .show();
+                return;
+            }
+
+            boolean wasRefreshStarted = intent.getBooleanExtra(RefreshService.WAS_REFRESH_STARTED, Boolean.FALSE);
+            if (!wasRefreshStarted) {
+                Toast.makeText(
+                        MainActivity.this,
+                        MainActivity.this.getString(R.string.refresh_already_started),
+                        LENGTH_SHORT)
+                        .show();
+            } else {
+                Toast.makeText(
+                        MainActivity.this,
+                        MainActivity.this.getString(R.string.refresh_complete),
+                        LENGTH_SHORT)
+                        .show();
+                MainActivity.this.reloadPager();
+            }
+        }
+    };
+
+    private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
+    private ProgressDialog refreshDialog;
     private ShareActionProvider shareActionProvider;
 
     @Override
@@ -43,7 +81,7 @@ public class MainActivity extends ActionBarActivity {
         drawerList.setOnItemClickListener(new DrawerClickListener());
 
         // tie drawer to action bar
-        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerToggle = new ActionBarDrawerToggle(
                 this,
                 drawerLayout,
@@ -52,6 +90,11 @@ public class MainActivity extends ActionBarActivity {
         drawerLayout.setDrawerListener(drawerToggle);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+
+        this.refreshDialog = new ProgressDialog(this);
+        refreshDialog.setMessage(getString(R.string.loading_articles));
+        refreshDialog.setIndeterminate(true);
+        refreshDialog.setCancelable(false);
 
         reloadPager();
     }
@@ -93,51 +136,46 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // prevent interactions if a refresh is in progress
+        // or reload if one just finished
+        Intent refreshIntent = new Intent(MainActivity.this, RefreshService.class);
+        ServiceConnection serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                RefreshService.RefreshServiceBinder binder = (RefreshService.RefreshServiceBinder) service;
+                if (binder.isRefreshInProgress()) {
+                    MainActivity.this.refreshDialog.show();
+                } else if (MainActivity.this.refreshDialog.isShowing()) {
+                    // refresh completed while UI was in the background
+                    MainActivity.this.refreshDialog.dismiss();
+                    reloadPager();
+                }
+                MainActivity.this.unbindService(this);
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                // no-op
+            }
+        };
+        bindService(refreshIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(refreshCompletionReceiver, new IntentFilter(RefreshService.COMPLETION_NOTIFICATION));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(refreshCompletionReceiver);
+    }
+
     private void reloadPager() {
         ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.setAdapter(new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, shareActionProvider));
-    }
-
-    private class RefreshTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final ProgressDialog progressDialog;
-
-        public RefreshTask(Context context) {
-            this.progressDialog = new ProgressDialog(context);
-            progressDialog.setMessage(context.getString(R.string.loading_articles));
-            progressDialog.setIndeterminate(true);
-            progressDialog.setCancelable(false);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            progressDialog.show();
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            DatabaseHelper databaseHelper = new DatabaseHelper(MainActivity.this);
-            SQLiteDatabase database = databaseHelper.getWritableDatabase();
-            try {
-                return Feeds.getInstance().refresh(database);
-            } finally {
-                database.close();
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Boolean wasRefreshStarted) {
-            progressDialog.dismiss();
-            if (!wasRefreshStarted) {
-                Toast.makeText(
-                        MainActivity.this,
-                        MainActivity.this.getString(R.string.refresh_already_started),
-                        LENGTH_SHORT)
-                        .show();
-            } else {
-                MainActivity.this.reloadPager();
-            }
-        }
     }
 
     private class DrawerClickListener implements ListView.OnItemClickListener {
@@ -147,7 +185,10 @@ public class MainActivity extends ActionBarActivity {
             switch (position) {
                 case 0: { // TODO
                     // Refresh
-                    new RefreshTask(MainActivity.this).execute();
+                    refreshDialog.show();
+                    Intent refreshIntent = new Intent(MainActivity.this, RefreshService.class);
+                    MainActivity.this.startService(refreshIntent);
+                    drawerLayout.closeDrawers();
                     break;
                 }
                 default:
