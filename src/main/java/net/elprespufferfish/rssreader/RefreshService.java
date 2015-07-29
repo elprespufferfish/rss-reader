@@ -5,10 +5,15 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -19,9 +24,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RefreshService extends IntentService {
 
     public static final String COMPLETION_NOTIFICATION = "net.elprespufferfish.rssreader.RefreshService.COMPLETION";
+    public static final String FORCE_REFRESH = "force_refresh";
     public static final String WAS_REFRESH_STARTED = "was_refresh_started";
     public static final String DID_REFRESH_COMPLETE = "did_refresh_complete";
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RefreshService.class);
     private static final int ONGOING_REFRESH_NOTIFICATION_ID = 1;
 
     public class RefreshServiceBinder extends Binder {
@@ -46,6 +53,12 @@ public class RefreshService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        boolean forceRefresh = intent.getBooleanExtra(FORCE_REFRESH, Boolean.FALSE);
+        if (!isOnWifi() && !forceRefresh) {
+            LOGGER.info("Skipping refresh due to lack of WiFi");
+            return;
+        }
+
         isRefreshInProgress.set(true);
 
         // start in foreground to avoid getting killed by the platform
@@ -82,4 +95,9 @@ public class RefreshService extends IntentService {
         }
     }
 
+    private boolean isOnWifi() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        return networkInfo.isConnected();
+    }
 }

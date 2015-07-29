@@ -187,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
                     // Refresh
                     refreshDialog.show();
                     Intent refreshIntent = new Intent(MainActivity.this, RefreshService.class);
+                    refreshIntent.putExtra(RefreshService.FORCE_REFRESH, Boolean.TRUE);
                     MainActivity.this.startService(refreshIntent);
                     drawerLayout.closeDrawers();
                     break;
