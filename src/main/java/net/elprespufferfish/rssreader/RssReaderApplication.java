@@ -17,7 +17,7 @@ public class RssReaderApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Feeds.initialize();
+        Feeds.initialize(this);
 
         scheduleRefresh();
 

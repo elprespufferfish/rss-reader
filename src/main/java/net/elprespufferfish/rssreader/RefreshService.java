@@ -77,7 +77,7 @@ public class RefreshService extends IntentService {
         boolean didRefreshComplete = false;
         boolean wasRefreshStarted = false;
         try {
-            wasRefreshStarted = Feeds.getInstance().refresh(database);
+            wasRefreshStarted = Feeds.getInstance().refresh();
             didRefreshComplete = true;
         } finally {
             database.close();

@@ -24,6 +24,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
@@ -36,9 +37,9 @@ public class Feeds {
 
     private static Feeds INSTANCE;
 
-    public static Feeds initialize() {
+    public static Feeds initialize(Context context) {
         if (INSTANCE != null) throw new IllegalStateException("initialize() called twice");
-        INSTANCE = new Feeds();
+        INSTANCE = new Feeds(context);
         return INSTANCE;
     }
 
@@ -47,15 +48,19 @@ public class Feeds {
         return INSTANCE;
     }
 
+    private final SQLiteDatabase database;
     private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
 
-    private Feeds() {}
+    private Feeds(Context context) {
+        DatabaseHelper databaseHelper = new DatabaseHelper(context);
+        database = databaseHelper.getWritableDatabase();
+    }
 
     /**
      * Trigger a refresh of all feeds
      * @return true iff a refresh was started
      */
-    public boolean refresh(final SQLiteDatabase database) {
+    public boolean refresh() {
         if (!isRefreshInProgress.compareAndSet(false, true)) {
             LOGGER.info("Refresh already in progress");
             return false;
@@ -66,13 +71,13 @@ public class Feeds {
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
         Set<AsyncTask<String, Void, Void>> tasks = new HashSet<AsyncTask<String, Void, Void>>();
-        for (final String feed : getFeeds(database)) {
+        for (final String feed : getFeeds()) {
             AsyncTask<String, Void, Void> articleFetchingTask = new AsyncTask<String, Void, Void>() {
                 @Override
                 protected Void doInBackground(String... feeds) {
                     String feedAddress = feeds[0];
                     try {
-                        parseFeed(database, feedAddress);
+                        parseFeed(feedAddress);
                     } catch (Exception e) {
                         LOGGER.error("Could not parse feed " + feedAddress, e);
                     }
@@ -94,11 +99,11 @@ public class Feeds {
         long durationMs = MILLISECONDS.convert(endTime - startTime, NANOSECONDS);
         LOGGER.info("Refresh complete in " + durationMs + "ms");
 
-        removeOldArticles(database);
+        removeOldArticles();
         return isRefreshInProgress.getAndSet(false);
     }
 
-    private List<String> getFeeds(SQLiteDatabase database) {
+    private List<String> getFeeds() {
         Cursor feedCursor = database.query(
                 FeedTable.TABLE_NAME,
                 new String[] { FeedTable.FEED_NAME, FeedTable.FEED_URL },
@@ -121,13 +126,13 @@ public class Feeds {
         }
     }
 
-    private void parseFeed(SQLiteDatabase database, String feedAddress) throws IOException, XmlPullParserException {
+    private void parseFeed(String feedAddress) throws IOException, XmlPullParserException {
         LOGGER.info("Attempting to parse " + feedAddress);
         long startTime = System.nanoTime();
 
-        int feedId = getFeedId(database, feedAddress);
-        String latestGuid = getLatestGuid(database, feedId);
-        List<Article> articles = parseArticles(database, feedAddress, latestGuid);
+        int feedId = getFeedId(feedAddress);
+        String latestGuid = getLatestGuid(feedId);
+        List<Article> articles = parseArticles(feedAddress, latestGuid);
 
         String insertSql = "INSERT INTO " + ArticleTable.TABLE_NAME +
                 "(" +
@@ -163,7 +168,7 @@ public class Feeds {
         LOGGER.info("Finished parsing " + feedAddress + " in " + durationMs + "ms");
     }
 
-    private int getFeedId(SQLiteDatabase database, String feedAddress) {
+    private int getFeedId(String feedAddress) {
         Cursor feedCursor = database.query(
                 FeedTable.TABLE_NAME,
                 new String[] { FeedTable._ID, FeedTable.FEED_URL },
@@ -181,7 +186,7 @@ public class Feeds {
         }
     }
 
-    private String getLatestGuid(SQLiteDatabase database, int feedId) {
+    private String getLatestGuid(int feedId) {
         Cursor latestGuidCursor = database.query(
                 ArticleTable.TABLE_NAME,
                 new String[] { ArticleTable.ARTICLE_GUID },
@@ -203,7 +208,7 @@ public class Feeds {
         }
     }
 
-    private List<Article> parseArticles(SQLiteDatabase database, String feedAddress, String latestGuid) throws IOException, XmlPullParserException {
+    private List<Article> parseArticles(String feedAddress, String latestGuid) throws IOException, XmlPullParserException {
         URL feedUrl = new URL(feedAddress);
         InputStream feedInput = feedUrl.openStream();
         try {
@@ -249,7 +254,7 @@ public class Feeds {
         }
     }
 
-    private void removeOldArticles(SQLiteDatabase database) {
+    private void removeOldArticles() {
         LOGGER.info("Deleting old articles");
         long startTime = System.nanoTime();
 
