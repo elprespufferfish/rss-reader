@@ -12,6 +12,7 @@ import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
@@ -174,8 +175,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void reloadPager() {
-        ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-        viewPager.setAdapter(new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, shareActionProvider));
+        final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+        final FragmentStatePagerAdapter articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, shareActionProvider);
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                // no-op
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                setTitle(articlePagerAdapter, position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                // no-op
+            }
+        });
+        viewPager.setAdapter(articlePagerAdapter);
+        if (articlePagerAdapter.getCount() != 0) {
+            setTitle(articlePagerAdapter, 0);
+        }
+    }
+
+    private void setTitle(FragmentStatePagerAdapter articlePagerAdapter, int position) {
+        ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(position);
+        String feedTitle = articleFragment.getArguments().getString(ArticleFragment.FEED_KEY);
+        MainActivity.this.getSupportActionBar().setTitle(feedTitle);
     }
 
     private class DrawerClickListener implements ListView.OnItemClickListener {

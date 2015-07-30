@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 public class ArticleFragment extends Fragment {
 
+    public static String FEED_KEY = "feed";
     public static String TITLE_KEY = "title";
     public static String LINK_KEY = "link";
     public static String DESCRIPTION_KEY = "description";
