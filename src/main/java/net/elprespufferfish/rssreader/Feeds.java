@@ -49,6 +49,7 @@ public class Feeds {
         return INSTANCE;
     }
 
+    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private final SQLiteDatabase database;
     private final XmlPullParserFactory xmlPullParserFactory;
     private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
@@ -154,8 +155,6 @@ public class Feeds {
         }
         LOGGER.info("Starting refresh");
         long startTime = System.nanoTime();
-
-        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
         Set<AsyncTask<String, Void, Void>> tasks = new HashSet<AsyncTask<String, Void, Void>>();
         for (final String feed : getFeeds()) {
