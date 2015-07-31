@@ -294,9 +294,9 @@ public class MainActivity extends AppCompatActivity {
             }
             String feedUrl = params[0];
             try {
-                String feedTitle = Feeds.getInstance().getFeedTitle(feedUrl);
-                Feeds.getInstance().addFeed(feedTitle, feedUrl);
-                return feedTitle;
+                Feed feed = Feeds.getInstance().getFeed(feedUrl);
+                Feeds.getInstance().addFeed(feed);
+                return feed.getName();
             } catch (Exception e) {
                 this.exception = e;
                 return feedUrl;

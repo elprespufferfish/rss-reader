@@ -67,10 +67,10 @@ public class Feeds {
     }
 
     /**
-     * @return Title of the RSS feed at the specified address
+     * @return Feed present at specified address
      * @throws RuntimeException if the title could not be determined
      */
-    public String getFeedTitle(String feedAddress) {
+    public Feed getFeed(String feedAddress) {
         InputStream feedInput = null;
         try {
             URL feedUrl = new URL(feedAddress);
@@ -91,7 +91,11 @@ public class Feeds {
                         } else {
                             if (isInChannel && "title".equals(xmlPullParser.getName())) {
                                 xmlPullParser.next();
-                                return xmlPullParser.getText();
+                                String feedName = xmlPullParser.getText();
+                                return new Feed.Builder()
+                                        .withName(feedName)
+                                        .withUrl(feedAddress)
+                                        .build();
                             }
 
                             isInChannel = false;
@@ -123,12 +127,12 @@ public class Feeds {
      * Add a new feed to the database
      * @throws FeedAlreadyAddedException if the feed has already been added
      */
-    public void addFeed(String feedName, String feedUrl) throws FeedAlreadyAddedException {
-        if (isFeedPresent(feedUrl)) throw new FeedAlreadyAddedException();
+    public void addFeed(Feed feed) throws FeedAlreadyAddedException {
+        if (isFeedPresent(feed.getUrl())) throw new FeedAlreadyAddedException();
 
         ContentValues values = new ContentValues();
-        values.put(FeedTable.FEED_NAME, feedName);
-        values.put(FeedTable.FEED_URL, feedUrl);
+        values.put(FeedTable.FEED_NAME, feed.getName());
+        values.put(FeedTable.FEED_URL, feed.getUrl());
         database.insertOrThrow(FeedTable.TABLE_NAME, null, values);
     }
 
