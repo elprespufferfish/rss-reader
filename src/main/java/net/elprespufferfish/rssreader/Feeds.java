@@ -139,9 +139,13 @@ public class Feeds {
         Cursor feedExistenceCursor = database.rawQuery(
                 "SELECT COUNT(*) FROM " + FeedTable.TABLE_NAME + " WHERE " + FeedTable.FEED_URL + "=?",
                 new String[] {feedUrl});
-        feedExistenceCursor.moveToNext();
-        int numMatchingFeeds = feedExistenceCursor.getInt(0);
-        return numMatchingFeeds != 0;
+        try {
+            feedExistenceCursor.moveToNext();
+            int numMatchingFeeds = feedExistenceCursor.getInt(0);
+            return numMatchingFeeds != 0;
+        } finally {
+            feedExistenceCursor.close();;
+        }
     }
 
     /**
