@@ -64,7 +64,7 @@ public class RefreshService extends IntentService {
         // start in foreground to avoid getting killed by the platform
         Notification refreshNotification = new NotificationCompat
                 .Builder(this)
-                .setSmallIcon(R.drawable.notification_template_icon_bg)
+                .setSmallIcon(android.R.mipmap.sym_def_app_icon)
                 .setContentTitle(getText(R.string.refresh_notification_title))
                 .setContentText(getText(R.string.refresh_notification_text))
                 .build();
