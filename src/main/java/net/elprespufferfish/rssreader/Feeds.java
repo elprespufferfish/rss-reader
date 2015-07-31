@@ -6,6 +6,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +19,10 @@ import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
 import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
 
 import org.joda.time.DateTime;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
@@ -67,10 +72,51 @@ public class Feeds {
     }
 
     /**
-     * @return Feed present at specified address
+     * @return Feed present at specified address, or List of autodiscovered feeds
      * @throws RuntimeException if the title could not be determined
      */
-    public Feed getFeed(String feedAddress) {
+    public List<Feed> getFeeds(String feedAddress) {
+        try {
+            return autoDiscoverFeeds(feedAddress);
+        } catch (Exception e) {
+            LOGGER.info("Could not autodiscover feeds at {}", feedAddress, e);
+            return Collections.singletonList(getFeed(feedAddress));
+        }
+    }
+
+
+    /**
+     * Attempt to autodiscover feeds as described at <a href="http://www.rssboard.org/rss-autodiscovery">http://www.rssboard.org/rss-autodiscovery</a>
+     * @return List of autodiscovered RSS feeds
+     */
+    private List<Feed> autoDiscoverFeeds(String discoveryAddress) {
+        List<Feed> feeds = new LinkedList<>();
+
+        try {
+            URL discoveryUrl = new URL(discoveryAddress);
+
+            Document document = Jsoup.connect(discoveryAddress).get();
+            Elements elements = document.select("link[rel=alternate][type=application/rss+xml]");
+            for (Element element : elements) {
+                String feedUrl = element.attr("href");
+                if (feedUrl.startsWith("/")) {
+                    // ensure feedUrl is absolute
+                    feedUrl = discoveryUrl.getProtocol() + "://" + discoveryUrl.getHost() + (discoveryUrl.getPort() != -1 ? ":" + discoveryUrl.getPort() : "") + feedUrl;
+                }
+
+                // unfortunately, we can't trust that the provided 'title' is accurate
+                // so we re-fetch
+                Feed feed = getFeed(feedUrl);
+                feeds.add(feed);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Could not discover feeds at " + discoveryAddress, e);
+        }
+
+        return feeds;
+    }
+
+    private Feed getFeed(String feedAddress) {
         InputStream feedInput = null;
         try {
             URL feedUrl = new URL(feedAddress);

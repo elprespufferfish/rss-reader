@@ -14,10 +14,20 @@
     <string name="refresh_notification_text">RSS Reader is refreshing articles...</string>
     <string name="drawer_open">Open Drawer</string>
     <string name="drawer_close">Close Drawer</string>
+
     <string name="add_feed_title">Add a New RSS Feed</string>
-    <string name="add_feed_ok">Add Feed</string>
+    <string name="add_feed_ok">Search for Feeds</string>
     <string name="add_feed_cancel">Cancel</string>
     <string name="add_feed_hint">Feed URL</string>
+    <string name="searching_for_feeds">Searching for Feeds</string>
+    <string name="no_feed_to_add">No feed at that address</string>
     <string name="feed_already_present">Feed already added</string>
-    <string name="add_feed_failure">Could not add feed from %1$s&#58; %2$s</string>
+    <string name="feed_added">Added %s</string>
+    <string name="add_feed_failure">Could not add feed from &#58; %s</string>
+
+    <string name="add_feeds_title">Add New RSS Feeds</string>
+    <string name="add_feeds_ok">Add Feeds</string>
+    <string name="add_feeds_cancel">Cancel</string>
+    <string name="adding_feeds">Adding Feeds</string>
+    <string name="feeds_added">Feeds Added</string>
 </resources>
