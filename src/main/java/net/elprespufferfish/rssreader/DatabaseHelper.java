@@ -25,7 +25,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " + DatabaseSchema.FeedTable.TABLE_NAME + " (" +
                 FeedTable._ID + " INTEGER PRIMARY KEY," +
                 FeedTable.FEED_NAME + " TEXT NOT NULL," +
-                FeedTable.FEED_URL + " TEXT NOT NULL" +
+                FeedTable.FEED_URL + " TEXT NOT NULL UNIQUE" +
                 ")");
 
         Map<String, String> defaultFeeds = new HashMap<String, String>();

@@ -6,10 +6,12 @@ import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -18,6 +20,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
@@ -25,6 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -219,10 +223,74 @@ public class MainActivity extends AppCompatActivity {
                     drawerLayout.closeDrawers();
                     break;
                 }
+                case 1: {
+                    // Add Feed
+                    final View addFeedDialogView = getLayoutInflater().inflate(R.layout.add_feed_dialog, null);
+                    AlertDialog addFeedDialog = new AlertDialog.Builder(MainActivity.this)
+                            .setView(addFeedDialogView)
+                            .setTitle(R.string.add_feed_title)
+                            .setPositiveButton(R.string.add_feed_ok, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.dismiss();;
+                                    EditText feedUrlInput = (EditText) addFeedDialogView.findViewById(R.id.feed_url);
+                                    String feedUrl = feedUrlInput.getText().toString();
+                                    new AddFeedTask().execute(feedUrl);
+                                }
+                            })
+                            .setNegativeButton(R.string.add_feed_cancel, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            })
+                            .create();
+                    addFeedDialog.show();
+                    break;
+                }
                 default:
                     throw new IllegalArgumentException("Unexpected menu item at position " + position);
             }
         }
 
+    }
+
+    private class AddFeedTask extends AsyncTask<String, Void, String> {
+
+        private final AlertDialog progressDialog;
+        private Exception exception;
+
+        public AddFeedTask() {
+            this.progressDialog = new AlertDialog.Builder(MainActivity.this).create();
+        }
+
+        @Override
+        protected void onPreExecute() {
+            progressDialog.show();;
+        }
+        @Override
+        protected String doInBackground(String... params) {
+            if (params.length != 1) {
+                throw new IllegalArgumentException("Expected single feedUrl parameter.  Received: " + params);
+            }
+            String feedUrl = params[0];
+            try {
+                String feedTitle = Feeds.getInstance().getFeedTitle(feedUrl);
+                Feeds.getInstance().addFeed(feedTitle, feedUrl);
+                return feedTitle;
+            } catch (Exception e) {
+                this.exception = e;
+                return feedUrl;
+            }
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            progressDialog.dismiss();
+            if (exception == null) {
+                Toast.makeText(MainActivity.this, result, Toast.LENGTH_SHORT).show();
+            } else if (exception instanceof FeedAlreadyAddedException) {
+                Toast.makeText(MainActivity.this, MainActivity.this.getString(R.string.feed_already_present, result, exception.getMessage()), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(MainActivity.this, MainActivity.this.getString(R.string.add_feed_failure, result, exception.getMessage()), Toast.LENGTH_LONG).show();
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@
     <string name="app_name">RSS Reader</string>
     <string-array name="drawer_items">
         <item>Refresh</item>
+        <item>Add Feed</item>
     </string-array>
     <string name="action_share">Share Article</string>
     <string name="loading_articles">Loading new articles&#8230;</string>
@@ -13,4 +14,10 @@
     <string name="refresh_notification_text">RSS Reader is refreshing articles...</string>
     <string name="drawer_open">Open Drawer</string>
     <string name="drawer_close">Close Drawer</string>
+    <string name="add_feed_title">Add a New RSS Feed</string>
+    <string name="add_feed_ok">Add Feed</string>
+    <string name="add_feed_cancel">Cancel</string>
+    <string name="add_feed_hint">Feed URL</string>
+    <string name="feed_already_present">Feed already added</string>
+    <string name="add_feed_failure">Could not add feed from %1$s&#58; %2$s</string>
 </resources>

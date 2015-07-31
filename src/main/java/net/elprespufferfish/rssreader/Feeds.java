@@ -24,6 +24,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -49,11 +50,97 @@ public class Feeds {
     }
 
     private final SQLiteDatabase database;
+    private final XmlPullParserFactory xmlPullParserFactory;
     private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
 
     private Feeds(Context context) {
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         database = databaseHelper.getWritableDatabase();
+
+        try {
+            xmlPullParserFactory = XmlPullParserFactory.newInstance();
+            xmlPullParserFactory.setNamespaceAware(true);
+        } catch (XmlPullParserException e) {
+            throw new RuntimeException("Could not instantiate XmlPullParserFactory", e);
+        }
+    }
+
+    /**
+     * @return Title of the RSS feed at the specified address
+     * @throws RuntimeException if the title could not be determined
+     */
+    public String getFeedTitle(String feedAddress) {
+        InputStream feedInput = null;
+        try {
+            URL feedUrl = new URL(feedAddress);
+            feedInput = feedUrl.openStream();
+
+            XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
+            xmlPullParser.setInput(feedInput, null);
+
+            boolean isInChannel = false;
+
+            int eventType = xmlPullParser.getEventType();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+
+                switch (eventType) {
+                    case XmlPullParser.START_TAG: {
+                        if ("channel".equals(xmlPullParser.getName())) {
+                            isInChannel = true;
+                        } else {
+                            if (isInChannel && "title".equals(xmlPullParser.getName())) {
+                                xmlPullParser.next();
+                                return xmlPullParser.getText();
+                            }
+
+                            isInChannel = false;
+                        }
+                        break;
+                    }
+                    default: {
+                        // no-op
+                    }
+                }
+                eventType = xmlPullParser.next();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not determine feed title at " + feedAddress, e);
+        } finally {
+            if (feedInput != null) {
+                try {
+                    feedInput.close();
+                } catch (IOException ignored) {
+                    // ignored
+                }
+            }
+        }
+
+        throw new IllegalArgumentException("Could not determine feed title at " + feedAddress);
+    }
+
+    /**
+     * Add a new feed to the database
+     * @throws FeedAlreadyAddedException if the feed has already been added
+     */
+    public void addFeed(String feedName, String feedUrl) throws FeedAlreadyAddedException {
+        if (isFeedPresent(feedUrl)) throw new FeedAlreadyAddedException();
+
+        ContentValues values = new ContentValues();
+        values.put(FeedTable.FEED_NAME, feedName);
+        values.put(FeedTable.FEED_URL, feedUrl);
+        database.insertOrThrow(FeedTable.TABLE_NAME, null, values);
+    }
+
+    /**
+     * @return true if the provided feedUrl is already in the database
+     */
+    private boolean isFeedPresent(String feedUrl) {
+        Cursor feedExistenceCursor = database.rawQuery(
+                "SELECT COUNT(*) FROM " + FeedTable.TABLE_NAME + " WHERE " + FeedTable.FEED_URL + "=?",
+                new String[] {feedUrl});
+        feedExistenceCursor.moveToNext();
+        int numMatchingFeeds = feedExistenceCursor.getInt(0);
+        return numMatchingFeeds != 0;
     }
 
     /**
@@ -212,8 +299,6 @@ public class Feeds {
         URL feedUrl = new URL(feedAddress);
         InputStream feedInput = feedUrl.openStream();
         try {
-            XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
-            xmlPullParserFactory.setNamespaceAware(true);
             XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
             xmlPullParser.setInput(feedInput, null);
 
