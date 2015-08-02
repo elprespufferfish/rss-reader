@@ -17,16 +17,23 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
     private final SQLiteDatabase database;
+    private final String feedUrl;
 
     public ArticlePagerAdapter(FragmentManager fm, Context context) {
+        this(fm, context, null);
+    }
+
+    public ArticlePagerAdapter(FragmentManager fm, Context context, String feedUrl) {
         super(fm);
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         this.database = databaseHelper.getReadableDatabase();
+        this.feedUrl = feedUrl;
     }
 
     @Override
     public Fragment getItem(int i) {
-        Cursor articleCursor = database.rawQuery("SELECT " +
+        String[] selectionArgs = new String[0];
+        String query = "SELECT " +
                 FeedTable.TABLE_NAME + "." + FeedTable.FEED_NAME + ", " +
                 ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_NAME + ", " +
                 ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_URL + ", " +
@@ -35,11 +42,15 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
                 ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_GUID + " " +
                 "FROM " + ArticleTable.TABLE_NAME + " " +
                 "JOIN " + FeedTable.TABLE_NAME + " " +
-                "ON " + ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_FEED + "=" + FeedTable.TABLE_NAME + "." + FeedTable._ID + " " +
-                "ORDER BY " + ArticleTable.ARTICLE_PUBLICATION_DATE + " DESC " +
+                "ON " + ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_FEED + "=" + FeedTable.TABLE_NAME + "." + FeedTable._ID + " ";
+        if (feedUrl != null) {
+            query += "WHERE " + FeedTable.FEED_URL + "=? ";
+            selectionArgs = new String[] { feedUrl };
+        }
+        query += "ORDER BY " + ArticleTable.ARTICLE_PUBLICATION_DATE + " DESC " +
                 "LIMIT 1 " +
-                "OFFSET " + i
-                , new String[] {});
+                "OFFSET " + i;
+        Cursor articleCursor = database.rawQuery(query, selectionArgs);
         try {
             articleCursor.moveToNext();
 
@@ -75,6 +86,10 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
         } finally {
             articleCountCursor.close();
         }
+    }
+
+    public void close() {
+        database.close();
     }
 
 }

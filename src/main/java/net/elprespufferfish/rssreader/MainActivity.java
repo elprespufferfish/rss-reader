@@ -35,6 +35,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -68,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                         MainActivity.this.getString(R.string.refresh_complete),
                         LENGTH_SHORT)
                         .show();
-                MainActivity.this.reloadPager();
+                MainActivity.this.reloadPager(nullFeed);
             }
         }
     };
@@ -76,9 +77,11 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
     private ViewPager viewPager;
-    private FragmentStatePagerAdapter articlePagerAdapter;
+    private ArticlePagerAdapter articlePagerAdapter;
     private ProgressDialog refreshDialog;
     private ShareActionProvider shareActionProvider;
+    private Feed nullFeed; // sentinel Feed to select 'all' feeds
+    private Feed currentFeed;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -117,7 +120,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        reloadPager();
+        nullFeed = Feed.nullFeed(this);
+        reloadPager(nullFeed);
     }
 
     @Override
@@ -174,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (MainActivity.this.refreshDialog.isShowing()) {
                     // refresh completed while UI was in the background
                     MainActivity.this.refreshDialog.dismiss();
-                    reloadPager();
+                    reloadPager(nullFeed);
                 }
                 MainActivity.this.unbindService(this);
             }
@@ -195,9 +199,11 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(refreshCompletionReceiver);
     }
 
-    private void reloadPager() {
+    private void reloadPager(Feed feed) {
+        currentFeed = feed;
         viewPager = (ViewPager) findViewById(R.id.pager);
-        articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this);
+        if (articlePagerAdapter != null) articlePagerAdapter.close();
+        articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, feed.getUrl());
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -278,6 +284,32 @@ public class MainActivity extends AppCompatActivity {
                             })
                             .create();
                     addFeedDialog.show();
+                    break;
+                }
+                case 2: {
+                    // View Feed
+                    final List<Feed> feeds = new LinkedList<>();
+                    feeds.add(Feed.nullFeed(MainActivity.this));
+                    feeds.addAll(Feeds.getInstance().getFeedsWithContent());
+
+                    int currentFeedIndex = feeds.indexOf(currentFeed);
+
+                    List<String> feedNames = new ArrayList<>(feeds.size());
+                    for (Feed feed : feeds) feedNames.add(feed.getName());
+                    AlertDialog viewFeedDialog = new AlertDialog.Builder(MainActivity.this)
+                            .setTitle(R.string.view_feed_title)
+                            .setSingleChoiceItems(feedNames.toArray(new String[0]), currentFeedIndex, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                                    Feed feed = feeds.get(selectedPosition);
+                                    drawerLayout.closeDrawers();
+                                    reloadPager(feed);
+                                }
+                            })
+                            .create();
+                    viewFeedDialog.show();
                     break;
                 }
                 default:

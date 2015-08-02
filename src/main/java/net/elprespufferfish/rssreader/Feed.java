@@ -1,5 +1,8 @@
 package net.elprespufferfish.rssreader;
 
+import android.content.Context;
+
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 /**
@@ -31,6 +34,10 @@ public class Feed {
         }
     }
 
+    public static Feed nullFeed(Context context) {
+        return new Feed(context.getString(R.string.all_feeds), null);
+    }
+
     private final String name;
     private final String url;
 
@@ -56,6 +63,14 @@ public class Feed {
     @Override
     public String toString() {
         return name + "@" + url;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Feed)) return false;
+        Feed that = (Feed) o;
+        return Objects.equal(this.name, that.name) &&
+                Objects.equal(this.url, that.url);
     }
 
 }

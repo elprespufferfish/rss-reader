@@ -211,7 +211,7 @@ public class Feeds {
         long startTime = System.nanoTime();
 
         Set<AsyncTask<String, Void, Void>> tasks = new HashSet<AsyncTask<String, Void, Void>>();
-        for (final String feed : getFeeds()) {
+        for (final Feed feed : getFeeds()) {
             AsyncTask<String, Void, Void> articleFetchingTask = new AsyncTask<String, Void, Void>() {
                 @Override
                 protected Void doInBackground(String... feeds) {
@@ -223,7 +223,7 @@ public class Feeds {
                     }
                     return null;
                 }
-            }.executeOnExecutor(executor, feed);
+            }.executeOnExecutor(executor, feed.getUrl());
             tasks.add(articleFetchingTask);
         }
 
@@ -243,7 +243,7 @@ public class Feeds {
         return isRefreshInProgress.getAndSet(false);
     }
 
-    private List<String> getFeeds() {
+    public List<Feed> getFeeds() {
         Cursor feedCursor = database.query(
                 FeedTable.TABLE_NAME,
                 new String[] { FeedTable.FEED_NAME, FeedTable.FEED_URL },
@@ -254,10 +254,32 @@ public class Feeds {
                 null);
         try {
             feedCursor.moveToFirst();
-            List<String> feeds = new LinkedList<String>();
+            List<Feed> feeds = new LinkedList<Feed>();
             while (!feedCursor.isAfterLast()) {
-                String feedUrl = feedCursor.getString(1);
-                feeds.add(feedUrl);
+                Feed feed = new Feed.Builder().withName(feedCursor.getString(0)).withUrl(feedCursor.getString(1)).build();
+                feeds.add(feed);
+                feedCursor.moveToNext();
+            }
+            return feeds;
+        } finally {
+            feedCursor.close();
+        }
+    }
+
+    public List<Feed> getFeedsWithContent() {
+        Cursor feedCursor = database.rawQuery(
+                "SELECT " + FeedTable.FEED_NAME + ", " + FeedTable.FEED_URL + " " +
+                        "FROM " + FeedTable.TABLE_NAME + " " +
+                        "WHERE EXISTS (SELECT " + ArticleTable._ID + " " +
+                            "FROM " + ArticleTable.TABLE_NAME + " " +
+                            "WHERE " + ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_FEED + "=" + FeedTable.TABLE_NAME + "." + FeedTable._ID + ")"
+                , new String[0]);
+        try {
+            feedCursor.moveToFirst();
+            List<Feed> feeds = new LinkedList<Feed>();
+            while (!feedCursor.isAfterLast()) {
+                Feed feed = new Feed.Builder().withName(feedCursor.getString(0)).withUrl(feedCursor.getString(1)).build();
+                feeds.add(feed);
                 feedCursor.moveToNext();
             }
             return feeds;

@@ -4,6 +4,7 @@
     <string-array name="drawer_items">
         <item>Refresh</item>
         <item>Add Feed</item>
+        <item>View Feed</item>
     </string-array>
     <string name="action_share">Share Article</string>
     <string name="loading_articles">Loading new articles&#8230;</string>
@@ -32,4 +33,8 @@
     <string name="add_feeds_cancel">Cancel</string>
     <string name="adding_feeds">Adding Feeds</string>
     <string name="feeds_added">Feeds Added</string>
+
+    <string name="all_feeds">All Feeds</string>
+    <string name="view_feed_title">Select Feed</string>
+    <string name="view_feed_ok">Select Feed</string>
 </resources>
