@@ -109,6 +109,14 @@ public class MainActivity extends AppCompatActivity {
         refreshDialog.setIndeterminate(true);
         refreshDialog.setCancelable(false);
 
+        Intent intent = getIntent();
+        if (Intent.ACTION_SEND.equals(intent.getAction())) {
+            if ("text/plain".equals(intent.getType())) {
+                String address = intent.getStringExtra(Intent.EXTRA_TEXT);
+                new AddFeedTask().execute(address);
+            }
+        }
+
         reloadPager();
     }
 
