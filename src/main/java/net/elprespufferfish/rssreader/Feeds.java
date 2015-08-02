@@ -7,10 +7,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -266,22 +269,31 @@ public class Feeds {
         }
     }
 
-    public List<Feed> getFeedsWithContent() {
+    public Map<Feed, Integer> getFeedsWithContent() {
+        Map<Feed, Integer> feeds = new TreeMap<>(new Comparator<Feed>() {
+            @Override
+            public int compare(Feed lhs, Feed rhs) {
+                return lhs.getName().compareTo(rhs.getName());
+            }
+        });
+
         Cursor feedCursor = database.rawQuery(
-                "SELECT " + FeedTable.FEED_NAME + ", " + FeedTable.FEED_URL + " " +
+                "SELECT " + FeedTable.FEED_NAME + ", " + FeedTable.FEED_URL + ", COUNT(CASE WHEN " + ArticleTable.ARTICLE_IS_READ + "=0 THEN 1 END) " +
                         "FROM " + FeedTable.TABLE_NAME + " " +
-                        "WHERE EXISTS (SELECT " + ArticleTable._ID + " " +
-                        "FROM " + ArticleTable.TABLE_NAME + " " +
-                        "WHERE " + ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_FEED + "=" + FeedTable.TABLE_NAME + "." + FeedTable._ID + ")"
+                        "JOIN " + ArticleTable.TABLE_NAME + " " +
+                        "ON " + FeedTable.TABLE_NAME + "." + FeedTable._ID + "=" + ArticleTable.ARTICLE_FEED + " " +
+                        "GROUP BY " + FeedTable.TABLE_NAME + "." + FeedTable._ID + " " +
+                        "ORDER BY " + FeedTable.FEED_NAME
                 , new String[0]);
         try {
             feedCursor.moveToFirst();
-            List<Feed> feeds = new LinkedList<Feed>();
+
             while (!feedCursor.isAfterLast()) {
                 Feed feed = new Feed.Builder().withName(feedCursor.getString(0)).withUrl(feedCursor.getString(1)).build();
-                feeds.add(feed);
+                feeds.put(feed, feedCursor.getInt(2));
                 feedCursor.moveToNext();
             }
+
             return feeds;
         } finally {
             feedCursor.close();

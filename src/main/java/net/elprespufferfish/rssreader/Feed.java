@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.hash.HashCode;
 
 /**
  * An RSS feed
@@ -71,6 +72,11 @@ public class Feed {
         Feed that = (Feed) o;
         return Objects.equal(this.name, that.name) &&
                 Objects.equal(this.url, that.url);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name, url);
     }
 
 }

@@ -32,13 +32,20 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
 
     private BroadcastReceiver refreshCompletionReceiver = new BroadcastReceiver() {
         @Override
@@ -207,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
     private void reloadPager(Feed feed) {
         currentFeed = feed;
         viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.clearOnPageChangeListeners();
         if (articlePagerAdapter != null) articlePagerAdapter.close();
         articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, feed.getUrl());
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -293,14 +301,29 @@ public class MainActivity extends AppCompatActivity {
                 }
                 case 2: {
                     // View Feed
-                    final List<Feed> feeds = new LinkedList<>();
-                    feeds.add(Feed.nullFeed(MainActivity.this));
-                    feeds.addAll(Feeds.getInstance().getFeedsWithContent());
+                    Map<Feed, Integer> feeds = Feeds.getInstance().getFeedsWithContent();
 
-                    int currentFeedIndex = feeds.indexOf(currentFeed);
+                    int totalUnread = 0;
+                    final Map<Feed, Integer> allFeeds = new LinkedHashMap<>();
+                    for (Integer numUnread : allFeeds.values()) {
+                        totalUnread += numUnread;
+                    }
+                    allFeeds.put(nullFeed, totalUnread);
+                    allFeeds.putAll(feeds);
 
-                    List<String> feedNames = new ArrayList<>(feeds.size());
-                    for (Feed feed : feeds) feedNames.add(feed.getName());
+                    int currentFeedIndex = 0;
+                    int i = 0;
+                    List<String> feedNames = new ArrayList<>(allFeeds.size());
+                    for (Map.Entry<Feed, Integer> entry : allFeeds.entrySet()) {
+                        Feed feed = entry.getKey();
+                        feedNames.add(feed.getName() + " (" + entry.getValue() + ")");
+
+                        if (feed.equals(currentFeed)) {
+                            currentFeedIndex = i;
+                        }
+                        i++;
+                    }
+
                     AlertDialog viewFeedDialog = new AlertDialog.Builder(MainActivity.this)
                             .setTitle(R.string.view_feed_title)
                             .setSingleChoiceItems(feedNames.toArray(new String[0]), currentFeedIndex, new DialogInterface.OnClickListener() {
@@ -308,9 +331,18 @@ public class MainActivity extends AppCompatActivity {
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
                                     int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
-                                    Feed feed = feeds.get(selectedPosition);
+
+                                    Feed selectedFeed = null;
+                                    int i = 0;
+                                    for (Feed feed : allFeeds.keySet()) {
+                                        if (i++ == selectedPosition) {
+                                            selectedFeed = feed;
+                                            break;
+                                        }
+                                    }
+
                                     drawerLayout.closeDrawers();
-                                    reloadPager(feed);
+                                    reloadPager(selectedFeed);
                                 }
                             })
                             .create();
