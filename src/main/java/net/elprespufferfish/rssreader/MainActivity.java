@@ -199,6 +199,12 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(refreshCompletionReceiver);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.articlePagerAdapter.close();
+    }
+
     private void reloadPager(Feed feed) {
         currentFeed = feed;
         viewPager = (ViewPager) findViewById(R.id.pager);
