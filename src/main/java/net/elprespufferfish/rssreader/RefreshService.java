@@ -69,7 +69,7 @@ public class RefreshService extends IntentService {
                 .setContentText(getText(R.string.refresh_notification_text))
                 .build();
         Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        PendingIntent.getActivity(this, 0, notificationIntent, 0);
         startForeground(ONGOING_REFRESH_NOTIFICATION_ID, refreshNotification);
 
         DatabaseHelper databaseHelper = new DatabaseHelper(this);

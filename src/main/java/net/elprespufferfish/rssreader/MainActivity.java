@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -340,6 +341,7 @@ public class MainActivity extends AppCompatActivity {
                                             break;
                                         }
                                     }
+                                    if (selectedFeed == null) throw new AssertionError("Could not determine selected feed at position " + selectedPosition + " from " + allFeeds);
 
                                     drawerLayout.closeDrawers();
                                     reloadPager(selectedFeed);
@@ -414,7 +416,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected List<Feed> doInBackground(String... params) {
             if (params.length != 1) {
-                throw new IllegalArgumentException("Expected single feedUrl parameter.  Received: " + params);
+                throw new IllegalArgumentException("Expected single feedUrl parameter.  Received: " + Arrays.toString(params));
             }
             String feedUrl = params[0];
             try {

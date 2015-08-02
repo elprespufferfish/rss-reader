@@ -44,7 +44,7 @@ public class Feeds {
     private static final Logger LOGGER = LoggerFactory.getLogger(Feeds.class);
     private static final int MAX_AGE_DAYS = 14; // do not store articles older than this
 
-    private static Feeds INSTANCE;
+    private static volatile Feeds INSTANCE;
 
     public static Feeds initialize(Context context) {
         if (INSTANCE != null) throw new IllegalStateException("initialize() called twice");

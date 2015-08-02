@@ -10,6 +10,7 @@ buildscript {
 defaultTasks 'build'
 
 apply plugin: 'com.android.application'
+apply plugin: 'findbugs'
 
 android {
     compileSdkVersion 22
@@ -39,3 +40,20 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.12'
 }
 
+task findbugs(type: FindBugs, dependsOn: assembleDebug) {
+    description 'Run FindBugs'
+    group 'verification'
+
+    classes = fileTree('build/intermediates/classes/debug/')
+    source = fileTree('src/main/java')
+    classpath = files()
+
+    effort = 'max'
+
+    excludeFilter = file('findbugs-exclude.xml')
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}

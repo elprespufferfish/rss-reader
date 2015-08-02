@@ -61,7 +61,7 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
             articleBuilder.setFeed(articleCursor.getString(1));
             articleBuilder.setTitle(articleCursor.getString(2));
             articleBuilder.setLink(articleCursor.getString(3));
-            articleBuilder.setPublicationDate(new DateTime(articleCursor.getInt(4)));
+            articleBuilder.setPublicationDate(new DateTime(articleCursor.getLong(4)));
             articleBuilder.setDescription(articleCursor.getString(5));
             articleBuilder.setImageUrl(articleCursor.getString(6));
             articleBuilder.setGuid(articleCursor.getString(7));
