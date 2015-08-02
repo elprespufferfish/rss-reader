@@ -8,7 +8,6 @@ import android.support.v4.view.ViewPager;
 public class ArticleReadListener implements ViewPager.OnPageChangeListener {
 
     private final ArticlePagerAdapter articlePagerAdapter;
-    private int lastPosition = 0;
 
     public ArticleReadListener(ArticlePagerAdapter articlePagerAdapter) {
         this.articlePagerAdapter = articlePagerAdapter;
@@ -21,11 +20,9 @@ public class ArticleReadListener implements ViewPager.OnPageChangeListener {
 
     @Override
     public void onPageSelected(int position) {
-        ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(lastPosition);
+        ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(position);
         Article article = articleFragment.getArguments().getParcelable(ArticleFragment.ARTICLE_KEY);
         Feeds.getInstance().markArticleRead(article);
-
-        lastPosition = position;
     }
 
     @Override
