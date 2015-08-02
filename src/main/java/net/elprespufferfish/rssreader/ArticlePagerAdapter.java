@@ -39,6 +39,7 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
                 ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_URL + ", " +
                 ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_PUBLICATION_DATE + ", " +
                 ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_DESCRIPTION + ", " +
+                ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_IMAGE_URL + ", " +
                 ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_GUID + " " +
                 "FROM " + ArticleTable.TABLE_NAME + " " +
                 "JOIN " + FeedTable.TABLE_NAME + " " +
@@ -60,7 +61,8 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
             articleBuilder.setLink(articleCursor.getString(2));
             articleBuilder.setPublicationDate(new DateTime(articleCursor.getInt(3)));
             articleBuilder.setDescription(articleCursor.getString(4));
-            articleBuilder.setGuid(articleCursor.getString(5));
+            articleBuilder.setImageUrl(articleCursor.getString(5));
+            articleBuilder.setGuid(articleCursor.getString(6));
             Article article = articleBuilder.build();
 
             Fragment fragment = new ArticleFragment();
@@ -69,6 +71,7 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
             bundle.putString(ArticleFragment.TITLE_KEY, article.getTitle());
             bundle.putString(ArticleFragment.LINK_KEY, article.getLink());
             bundle.putString(ArticleFragment.DESCRIPTION_KEY, article.getDescription());
+            bundle.putString(ArticleFragment.IMAGE_KEY, article.getImageUrl());
             fragment.setArguments(bundle);
 
             return fragment;

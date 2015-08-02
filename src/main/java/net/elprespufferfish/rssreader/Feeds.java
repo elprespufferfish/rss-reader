@@ -321,9 +321,10 @@ public class Feeds {
                 ArticleTable.ARTICLE_URL + "," +
                 ArticleTable.ARTICLE_PUBLICATION_DATE + "," +
                 ArticleTable.ARTICLE_DESCRIPTION + "," +
+                ArticleTable.ARTICLE_IMAGE_URL + "," +
                 ArticleTable.ARTICLE_GUID + "," +
                 ArticleTable.ARTICLE_IS_READ +
-                ") VALUES (?,?,?,?,?,?,?);";
+                ") VALUES (?,?,?,?,?,?,?, ?);";
         SQLiteStatement statement = database.compileStatement(insertSql);
         database.beginTransactionNonExclusive();
         try {
@@ -335,8 +336,11 @@ public class Feeds {
                 statement.bindString(3, article.getLink());
                 statement.bindLong(4, article.getPublicationDate().getMillis());
                 statement.bindString(5, article.getDescription());
-                statement.bindString(6, article.getGuid());
-                statement.bindLong(7, 0);
+                if (article.getImageUrl() == null) {
+                    statement.bindString(6, article.getImageUrl());
+                }
+                statement.bindString(7, article.getGuid());
+                statement.bindLong(8, 0);
                 statement.execute();
             }
             database.setTransactionSuccessful();

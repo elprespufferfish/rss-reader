@@ -16,6 +16,7 @@ public class Article {
         private String link;
         private DateTime publicationDate;
         private String description;
+        private String imageUrl;
         private String guid;
 
         public void setFeed(String feed) {
@@ -38,12 +39,16 @@ public class Article {
             this.description = description;
         }
 
+        public void setImageUrl(String imageUrl) {
+            this.imageUrl = imageUrl;
+        }
+
         public void setGuid(String guid) {
             this.guid = guid;
         }
 
         public Article build() {
-            return new Article(feed, title, link, publicationDate, description, guid);
+            return new Article(feed, title, link, publicationDate, description, imageUrl, guid);
         }
     }
 
@@ -52,6 +57,7 @@ public class Article {
     private final String link;
     private final DateTime publicationDate;
     private final String description;
+    private final String imageUrl;
     private final String guid;
 
     private Article(
@@ -60,12 +66,14 @@ public class Article {
             String link,
             DateTime publicationDate,
             String description,
+            String imageUrl,
             String guid) {
         this.feed = feed;
         this.title = title;
         this.link = link;
         this.publicationDate = publicationDate;
         this.description = description;
+        this.imageUrl = imageUrl;
         this.guid = guid;
     }
 
@@ -87,6 +95,10 @@ public class Article {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 
     public String getGuid() {

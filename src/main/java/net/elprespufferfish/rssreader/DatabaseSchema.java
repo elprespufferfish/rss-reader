@@ -17,6 +17,7 @@ public class DatabaseSchema {
         String ARTICLE_URL = "article_url";
         String ARTICLE_PUBLICATION_DATE = "article_pubdate";
         String ARTICLE_DESCRIPTION = "article_description";
+        String ARTICLE_IMAGE_URL = "article_image_url";
         String ARTICLE_GUID = "article_guid";
         String ARTICLE_IS_READ = "article_is_read";
     }

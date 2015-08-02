@@ -34,7 +34,6 @@ public class Articles {
         Builder builder = new Builder();
         builder.setFeed(feed);
 
-        boolean hasOpenGraphContent = false;
         String text = null;
         int eventType = xmlPullParser.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT) {
@@ -55,11 +54,8 @@ public class Articles {
                     builder.setTitle(text);
                 } else if ("".equals(namespace) && "link".equals(nodeName)) {
                     builder.setLink(text);
-                    String openGraphContent = getOpenGraphContent(text);
-                    if (openGraphContent != null) {
-                        hasOpenGraphContent = true;
-                        builder.setDescription(openGraphContent);
-                    }
+                    String imageUrl = getOpenGraphContent(text, "image");
+                    builder.setImageUrl(imageUrl);
                 } else if ("".equals(namespace) && "pubDate".equals(nodeName)) {
                     DateTime publicationDate = null;
                     for (DateTimeFormatter dateTimeFormatter : RFC822_FORMATTERS) {
@@ -75,10 +71,7 @@ public class Articles {
                     }
                     builder.setPublicationDate(publicationDate);
                 } else if ("".equals(namespace) && "description".equals(nodeName)) {
-                    if (!hasOpenGraphContent) {
-                        // fall back to plain description if nothing better is available
-                        builder.setDescription(text);
-                    }
+                    builder.setDescription(text);
                 } else if ("".equals(namespace) && "guid".equals(nodeName)) {
                     builder.setGuid(text);
                 } else if ("".equals(namespace) && "item".equals(nodeName)) {
@@ -101,12 +94,10 @@ public class Articles {
     /**
      * @return opengraph content at provided content if available
      */
-    private static String getOpenGraphContent(String articleAddress) {
+    private static String getOpenGraphContent(String articleAddress, String type) {
         try {
             Document document = Jsoup.connect(articleAddress).get();
-            String imageAddress = getOpenGraphContent(document, "image");
-            if (imageAddress == null) return null;
-            else return "<html><body><img src=\"" + imageAddress + "\" width=\"100%\"/></body></html>";
+            return getOpenGraphContent(document, type);
         } catch (Exception e) {
             LOGGER.error("Could not crawl for opengraph content: " + e.getMessage());
         }

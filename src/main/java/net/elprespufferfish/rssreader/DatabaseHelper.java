@@ -54,6 +54,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 ArticleTable.ARTICLE_URL + " TEXT NOT NULL," +
                 ArticleTable.ARTICLE_PUBLICATION_DATE + " INTEGER NOT NULL," +
                 ArticleTable.ARTICLE_DESCRIPTION + " TEXT NOT NULL," +
+                ArticleTable.ARTICLE_IMAGE_URL + " TEXT," + // may be null if no image is present
                 ArticleTable.ARTICLE_GUID + " TEXT NOT NULL," +
                 ArticleTable.ARTICLE_IS_READ + " INTEGER NOT NULL," +
                 "FOREIGN KEY(" + ArticleTable.ARTICLE_FEED + ") REFERENCES " + FeedTable.TABLE_NAME + "(" + FeedTable._ID + ")" +
