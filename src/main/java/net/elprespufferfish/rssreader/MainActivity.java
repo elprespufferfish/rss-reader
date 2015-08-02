@@ -2,6 +2,7 @@ package net.elprespufferfish.rssreader;
 
 import static android.widget.Toast.LENGTH_LONG;
 import static android.widget.Toast.LENGTH_SHORT;
+
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -69,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
+    private ViewPager viewPager;
+    private FragmentStatePagerAdapter articlePagerAdapter;
     private ProgressDialog refreshDialog;
     private ShareActionProvider shareActionProvider;
 
@@ -122,9 +125,10 @@ public class MainActivity extends AppCompatActivity {
 
         MenuItem shareItem = menu.findItem(R.id.action_share);
         shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
-        Intent defaultShareIntent = new Intent(Intent.ACTION_SEND);
-        defaultShareIntent.setType("text/plain");
-        shareActionProvider.setShareIntent(defaultShareIntent);
+        if (articlePagerAdapter.getCount() != 0) {
+            ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(viewPager.getCurrentItem());
+            updateShareAction(articleFragment);
+        }
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -179,8 +183,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void reloadPager() {
-        final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-        final FragmentStatePagerAdapter articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, shareActionProvider);
+        viewPager = (ViewPager) findViewById(R.id.pager);
+        articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this);
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -189,7 +193,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                setTitle(articlePagerAdapter, position);
+                ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(position);
+                setTitle(articleFragment);
+                updateShareAction(articleFragment);
             }
 
             @Override
@@ -199,14 +205,29 @@ public class MainActivity extends AppCompatActivity {
         });
         viewPager.setAdapter(articlePagerAdapter);
         if (articlePagerAdapter.getCount() != 0) {
-            setTitle(articlePagerAdapter, 0);
+            ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(0);
+            setTitle(articleFragment);
         }
     }
 
-    private void setTitle(FragmentStatePagerAdapter articlePagerAdapter, int position) {
-        ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(position);
+    private void setTitle(ArticleFragment articleFragment) {
         String feedTitle = articleFragment.getArguments().getString(ArticleFragment.FEED_KEY);
         MainActivity.this.getSupportActionBar().setTitle(feedTitle);
+    }
+
+    private void updateShareAction(ArticleFragment articleFragment) {
+        Bundle arguments = articleFragment.getArguments();
+        String title = arguments.getString(ArticleFragment.TITLE_KEY);
+        String link = arguments.getString(ArticleFragment.LINK_KEY);
+
+        String textToShare = title + "\n\n" + link;
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_SUBJECT, title);
+        intent.putExtra(Intent.EXTRA_TEXT, textToShare);
+        intent.setType("text/plain");
+
+        shareActionProvider.setShareIntent(intent);
     }
 
     private class DrawerClickListener implements ListView.OnItemClickListener {
