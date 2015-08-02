@@ -67,11 +67,7 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
             Fragment fragment = new ArticleFragment();
             Bundle bundle = new Bundle();
-            bundle.putString(ArticleFragment.FEED_KEY, article.getFeed());
-            bundle.putString(ArticleFragment.TITLE_KEY, article.getTitle());
-            bundle.putString(ArticleFragment.LINK_KEY, article.getLink());
-            bundle.putString(ArticleFragment.DESCRIPTION_KEY, article.getDescription());
-            bundle.putString(ArticleFragment.IMAGE_KEY, article.getImageUrl());
+            bundle.putParcelable(ArticleFragment.ARTICLE_KEY, article);
             fragment.setArguments(bundle);
 
             return fragment;

@@ -1,5 +1,8 @@
 package net.elprespufferfish.rssreader;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.joda.time.DateTime;
 
 /**
@@ -7,7 +10,7 @@ import org.joda.time.DateTime;
  *
  * @author elprespufferfish
  */
-public class Article {
+public class Article implements Parcelable {
 
     public static class Builder {
 
@@ -51,6 +54,22 @@ public class Article {
             return new Article(feed, title, link, publicationDate, description, imageUrl, guid);
         }
     }
+
+    public static final Parcelable.Creator<Article> CREATOR = new Parcelable.Creator<Article>() {
+        public Article createFromParcel(Parcel in) {
+            return new Article(in.readString(),
+                    in.readString(),
+                    in.readString(),
+                    new DateTime(in.readLong()),
+                    in.readString(),
+                    in.readString(),
+                    in.readString());
+        }
+
+        public Article[] newArray(int size) {
+            return new Article[size];
+        }
+    };
 
     private final String feed;
     private final String title;
@@ -103,6 +122,22 @@ public class Article {
 
     public String getGuid() {
         return guid;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(feed);
+        dest.writeString(title);
+        dest.writeString(link);
+        dest.writeLong(publicationDate.getMillis());
+        dest.writeString(description);
+        dest.writeString(imageUrl);
+        dest.writeString(guid);
     }
 
 }

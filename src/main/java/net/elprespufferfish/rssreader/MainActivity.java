@@ -236,19 +236,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setTitle(ArticleFragment articleFragment) {
-        String feedTitle = articleFragment.getArguments().getString(ArticleFragment.FEED_KEY);
-        MainActivity.this.getSupportActionBar().setTitle(feedTitle);
+        Article article = articleFragment.getArguments().getParcelable(ArticleFragment.ARTICLE_KEY);
+        MainActivity.this.getSupportActionBar().setTitle(article.getTitle());
     }
 
     private void updateShareAction(ArticleFragment articleFragment) {
         Bundle arguments = articleFragment.getArguments();
-        String title = arguments.getString(ArticleFragment.TITLE_KEY);
-        String link = arguments.getString(ArticleFragment.LINK_KEY);
+        Article article = arguments.getParcelable(ArticleFragment.ARTICLE_KEY);
 
-        String textToShare = title + "\n\n" + link;
+        String textToShare = article.getTitle() + "\n\n" + article.getLink();
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_SEND);
-        intent.putExtra(Intent.EXTRA_SUBJECT, title);
+        intent.putExtra(Intent.EXTRA_SUBJECT, article.getTitle());
         intent.putExtra(Intent.EXTRA_TEXT, textToShare);
         intent.setType("text/plain");
 
