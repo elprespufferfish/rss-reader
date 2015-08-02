@@ -271,8 +271,8 @@ public class Feeds {
                 "SELECT " + FeedTable.FEED_NAME + ", " + FeedTable.FEED_URL + " " +
                         "FROM " + FeedTable.TABLE_NAME + " " +
                         "WHERE EXISTS (SELECT " + ArticleTable._ID + " " +
-                            "FROM " + ArticleTable.TABLE_NAME + " " +
-                            "WHERE " + ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_FEED + "=" + FeedTable.TABLE_NAME + "." + FeedTable._ID + ")"
+                        "FROM " + ArticleTable.TABLE_NAME + " " +
+                        "WHERE " + ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_FEED + "=" + FeedTable.TABLE_NAME + "." + FeedTable._ID + ")"
                 , new String[0]);
         try {
             feedCursor.moveToFirst();
@@ -288,6 +288,24 @@ public class Feeds {
         }
     }
 
+    public void removeFeed(Feed feed) {
+        database.beginTransaction();
+        try {
+            database.rawQuery(
+                    "DELETE FROM " + ArticleTable.TABLE_NAME + " " +
+                    "WHERE " + ArticleTable.ARTICLE_FEED + "=" + "(SELECT " + FeedTable._ID + " " +
+                            "FROM " + FeedTable.TABLE_NAME + " " +
+                            "WHERE " + FeedTable.FEED_URL + "=?)",
+                    new String[0]);
+            database.delete(
+                    FeedTable.TABLE_NAME,
+                    FeedTable.FEED_URL + "=?",
+                    new String[] { feed.getUrl() });
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
     private void parseFeed(String feedAddress) throws IOException, XmlPullParserException {
         LOGGER.info("Attempting to parse " + feedAddress);
         long startTime = System.nanoTime();

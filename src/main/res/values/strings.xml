@@ -5,6 +5,7 @@
         <item>Refresh</item>
         <item>Add Feed</item>
         <item>View Feed</item>
+        <item>Remove Feed</item>
     </string-array>
     <string name="action_share">Share Article</string>
     <string name="loading_articles">Loading new articles&#8230;</string>
@@ -37,4 +38,9 @@
     <string name="all_feeds">All Feeds</string>
     <string name="view_feed_title">Select Feed</string>
     <string name="view_feed_ok">Select Feed</string>
+
+    <string name="remove_feed_title">Remove Feed</string>
+    <string name="remove_feed_ok">Remove Feed</string>
+    <string name="remove_feed_cancel">Cancel</string>
+    <string name="remove_feed_complete">%s Removed</string>
 </resources>

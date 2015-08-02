@@ -88,6 +88,9 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
         }
     }
 
+    /**
+     * Release resources
+     */
     public void close() {
         database.close();
     }

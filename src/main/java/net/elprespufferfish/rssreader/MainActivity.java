@@ -312,6 +312,51 @@ public class MainActivity extends AppCompatActivity {
                     viewFeedDialog.show();
                     break;
                 }
+                case 3: {
+                    // Remove Feed
+                    final List<Feed> feeds = Feeds.getInstance().getFeeds();
+
+                    List<String> feedNames = new ArrayList<>(feeds.size());
+                    for (Feed feed : feeds) feedNames.add(feed.getName());
+                    AlertDialog viewFeedDialog = new AlertDialog.Builder(MainActivity.this)
+                            .setTitle(R.string.remove_feed_title)
+                            .setSingleChoiceItems(feedNames.toArray(new String[0]), -1, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // no-op
+                                }
+                            })
+                            .setPositiveButton(R.string.remove_feed_ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                                    Feed feedToRemove = feeds.get(selectedPosition);
+                                    Feeds.getInstance().removeFeed(feedToRemove);
+                                    Toast.makeText(
+                                            MainActivity.this,
+                                            MainActivity.this.getString(R.string.remove_feed_complete, feedToRemove.getName()),
+                                            Toast.LENGTH_LONG)
+                                            .show();
+                                    drawerLayout.closeDrawers();
+
+                                    if (currentFeed.equals(feedToRemove)) {
+                                        reloadPager(nullFeed);
+                                    } else {
+                                        reloadPager(currentFeed);
+                                    }
+                                }
+                            })
+                            .setNegativeButton(R.string.remove_feed_cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            })
+                            .create();
+                    viewFeedDialog.show();
+                    break;
+                }
                 default:
                     throw new IllegalArgumentException("Unexpected menu item at position " + position);
             }
