@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setTitle(ArticleFragment articleFragment) {
         Article article = articleFragment.getArguments().getParcelable(ArticleFragment.ARTICLE_KEY);
-        MainActivity.this.getSupportActionBar().setTitle(article.getTitle());
+        MainActivity.this.getSupportActionBar().setTitle(article.getFeed());
     }
 
     private void updateShareAction(ArticleFragment articleFragment) {
