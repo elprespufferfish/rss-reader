@@ -304,9 +304,9 @@ public class MainActivity extends AppCompatActivity {
                     // View Feed
                     Map<Feed, Integer> feeds = Feeds.getInstance().getFeedsWithContent();
 
-                    int totalUnread = 0;
                     final Map<Feed, Integer> allFeeds = new LinkedHashMap<>();
-                    for (Integer numUnread : allFeeds.values()) {
+                    int totalUnread = 0;
+                    for (Integer numUnread : feeds.values()) {
                         totalUnread += numUnread;
                     }
                     allFeeds.put(nullFeed, totalUnread);
