@@ -14,6 +14,7 @@ public class Article implements Parcelable {
 
     public static class Builder {
 
+        private int id = -1;
         private String feed;
         private String title;
         private String link;
@@ -21,6 +22,10 @@ public class Article implements Parcelable {
         private String description;
         private String imageUrl;
         private String guid;
+
+        public void setId(int id) {
+            this.id = id;
+        }
 
         public void setFeed(String feed) {
             this.feed = feed;
@@ -51,13 +56,14 @@ public class Article implements Parcelable {
         }
 
         public Article build() {
-            return new Article(feed, title, link, publicationDate, description, imageUrl, guid);
+            return new Article(id, feed, title, link, publicationDate, description, imageUrl, guid);
         }
     }
 
     public static final Parcelable.Creator<Article> CREATOR = new Parcelable.Creator<Article>() {
         public Article createFromParcel(Parcel in) {
-            return new Article(in.readString(),
+            return new Article(in.readInt(),
+                    in.readString(),
                     in.readString(),
                     in.readString(),
                     new DateTime(in.readLong()),
@@ -71,6 +77,7 @@ public class Article implements Parcelable {
         }
     };
 
+    private final int id;
     private final String feed;
     private final String title;
     private final String link;
@@ -80,6 +87,7 @@ public class Article implements Parcelable {
     private final String guid;
 
     private Article(
+            int id,
             String feed,
             String title,
             String link,
@@ -87,6 +95,7 @@ public class Article implements Parcelable {
             String description,
             String imageUrl,
             String guid) {
+        this.id = id;
         this.feed = feed;
         this.title = title;
         this.link = link;
@@ -94,6 +103,11 @@ public class Article implements Parcelable {
         this.description = description;
         this.imageUrl = imageUrl;
         this.guid = guid;
+    }
+
+    public int getId() {
+        if (id == -1) throw new IllegalStateException("Article was not populated from database");
+        return id;
     }
 
     public String getFeed() {
@@ -131,6 +145,7 @@ public class Article implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
         dest.writeString(feed);
         dest.writeString(title);
         dest.writeString(link);

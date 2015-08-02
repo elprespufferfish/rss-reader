@@ -34,6 +34,7 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
     public Fragment getItem(int i) {
         String[] selectionArgs = new String[0];
         String query = "SELECT " +
+                ArticleTable.TABLE_NAME + "." + ArticleTable._ID + ", " +
                 FeedTable.TABLE_NAME + "." + FeedTable.FEED_NAME + ", " +
                 ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_NAME + ", " +
                 ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_URL + ", " +
@@ -56,13 +57,14 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
             articleCursor.moveToNext();
 
             Builder articleBuilder = new Article.Builder();
-            articleBuilder.setFeed(articleCursor.getString(0));
-            articleBuilder.setTitle(articleCursor.getString(1));
-            articleBuilder.setLink(articleCursor.getString(2));
-            articleBuilder.setPublicationDate(new DateTime(articleCursor.getInt(3)));
-            articleBuilder.setDescription(articleCursor.getString(4));
-            articleBuilder.setImageUrl(articleCursor.getString(5));
-            articleBuilder.setGuid(articleCursor.getString(6));
+            articleBuilder.setId(articleCursor.getInt(0));
+            articleBuilder.setFeed(articleCursor.getString(1));
+            articleBuilder.setTitle(articleCursor.getString(2));
+            articleBuilder.setLink(articleCursor.getString(3));
+            articleBuilder.setPublicationDate(new DateTime(articleCursor.getInt(4)));
+            articleBuilder.setDescription(articleCursor.getString(5));
+            articleBuilder.setImageUrl(articleCursor.getString(6));
+            articleBuilder.setGuid(articleCursor.getString(7));
             Article article = articleBuilder.build();
 
             Fragment fragment = new ArticleFragment();

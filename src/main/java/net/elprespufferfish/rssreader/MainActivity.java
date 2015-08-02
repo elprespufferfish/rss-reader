@@ -15,7 +15,6 @@ import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
@@ -228,6 +227,7 @@ public class MainActivity extends AppCompatActivity {
                 // no-op
             }
         });
+        viewPager.addOnPageChangeListener(new ArticleReadListener(articlePagerAdapter));
         viewPager.setAdapter(articlePagerAdapter);
         if (articlePagerAdapter.getCount() != 0) {
             ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(0);

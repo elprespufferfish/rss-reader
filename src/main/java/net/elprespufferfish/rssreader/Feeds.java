@@ -293,7 +293,7 @@ public class Feeds {
         try {
             database.rawQuery(
                     "DELETE FROM " + ArticleTable.TABLE_NAME + " " +
-                    "WHERE " + ArticleTable.ARTICLE_FEED + "=" + "(SELECT " + FeedTable._ID + " " +
+                            "WHERE " + ArticleTable.ARTICLE_FEED + "=" + "(SELECT " + FeedTable._ID + " " +
                             "FROM " + FeedTable.TABLE_NAME + " " +
                             "WHERE " + FeedTable.FEED_URL + "=?)",
                     new String[0]);
@@ -355,9 +355,9 @@ public class Feeds {
     private int getFeedId(String feedAddress) {
         Cursor feedCursor = database.query(
                 FeedTable.TABLE_NAME,
-                new String[] { FeedTable._ID, FeedTable.FEED_URL },
+                new String[]{FeedTable._ID, FeedTable.FEED_URL},
                 FeedTable.FEED_URL + " = ?",
-                new String[] { feedAddress },
+                new String[]{feedAddress},
                 null,
                 null,
                 null);
@@ -434,6 +434,16 @@ public class Feeds {
         } finally {
             feedInput.close();
         }
+    }
+
+    public void markArticleRead(Article article) {
+        ContentValues values = new ContentValues();
+        values.put(ArticleTable.ARTICLE_IS_READ, 1);
+        LOGGER.debug("Marking {} as read", article.getId());
+        database.update(ArticleTable.TABLE_NAME,
+                values,
+                ArticleTable._ID + "=?",
+                new String[] { Integer.toString(article.getId()) });
     }
 
     private void removeOldArticles() {
