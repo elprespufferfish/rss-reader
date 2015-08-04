@@ -206,6 +206,14 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(refreshCompletionReceiver);
     }
 
+    /**
+     * Don't finish() when we hit back
+     */
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
