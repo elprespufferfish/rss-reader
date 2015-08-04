@@ -348,7 +348,7 @@ public class Feeds {
                 statement.bindString(3, article.getLink());
                 statement.bindLong(4, article.getPublicationDate().getMillis());
                 statement.bindString(5, article.getDescription());
-                if (article.getImageUrl() == null) {
+                if (article.getImageUrl() != null) {
                     statement.bindString(6, article.getImageUrl());
                 }
                 statement.bindString(7, article.getGuid());
