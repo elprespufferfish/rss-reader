@@ -122,6 +122,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        this.shareActionProvider = new ShareActionProvider(this);
+
         nullFeed = Feed.nullFeed(this);
         reloadPager(nullFeed);
     }
@@ -143,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.layout.action_bar_menu, menu);
 
         MenuItem shareItem = menu.findItem(R.id.action_share);
-        shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+        MenuItemCompat.setActionProvider(shareItem, shareActionProvider);
         if (articlePagerAdapter.getCount() != 0) {
             ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(viewPager.getCurrentItem());
             updateShareAction(articleFragment);
@@ -244,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
         if (articlePagerAdapter.getCount() != 0) {
             ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(0);
             setTitle(articleFragment);
+            updateShareAction(articleFragment);
         }
     }
 
