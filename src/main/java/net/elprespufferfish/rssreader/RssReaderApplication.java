@@ -28,7 +28,9 @@ public class RssReaderApplication extends Application {
                     .penaltyDeath()
                     .build());
             StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                    .detectAll()
+                    .detectActivityLeaks()
+                    //.detectLeakedClosableObjects() // TODO - bug in okhttp exposes a leak in HttpResponseCachehttps://github.com/square/okhttp/issues/215
+                    .detectLeakedSqlLiteObjects()
                     .penaltyLog()
                     .penaltyDeath()
                     .build());
