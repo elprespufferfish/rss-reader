@@ -243,7 +243,17 @@ public class Feeds {
         LOGGER.info("Refresh complete in " + durationMs + "ms");
 
         removeOldArticles();
+
+        vacuum();
+
         return isRefreshInProgress.getAndSet(false);
+    }
+
+    private void vacuum() {
+        long startTime = System.nanoTime();
+        database.execSQL("VACUUM");
+        long vacuumDuration = System.nanoTime() - startTime;
+        LOGGER.info("Vacuum complete in " + vacuumDuration + "ms");
     }
 
     public List<Feed> getFeeds() {
