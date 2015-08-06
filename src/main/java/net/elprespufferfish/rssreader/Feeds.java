@@ -468,6 +468,21 @@ public class Feeds {
                 new String[] { Integer.toString(article.getId()) });
     }
 
+    public void markAllAsRead(Feed feed) {
+        if (feed.getUrl() == null) {
+            ContentValues values = new ContentValues();
+            values.put(ArticleTable.ARTICLE_IS_READ, 1);
+            database.update(ArticleTable.TABLE_NAME,
+                    values,
+                    "", new String[0]);
+        } else {
+            database.execSQL("UPDATE " + ArticleTable.TABLE_NAME + " " +
+                    "SET " + ArticleTable.ARTICLE_IS_READ + "=1 " +
+                    "WHERE " + ArticleTable.ARTICLE_FEED + "= " +
+                    "(SELECT " + FeedTable._ID + " FROM " + FeedTable.TABLE_NAME + " WHERE " + FeedTable.FEED_URL + "='" + feed.getUrl() + "')");
+        }
+    }
+
     private void removeOldArticles() {
         LOGGER.info("Deleting old articles");
         long startTime = System.nanoTime();

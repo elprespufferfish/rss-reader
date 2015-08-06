@@ -402,6 +402,12 @@ public class MainActivity extends AppCompatActivity {
                     viewFeedDialog.show();
                     break;
                 }
+                case 4: {
+                    // Mark All as Read
+                    Feeds.getInstance().markAllAsRead(currentFeed);
+                    drawerLayout.closeDrawers();
+                    break;
+                }
                 default:
                     throw new IllegalArgumentException("Unexpected menu item at position " + position);
             }

@@ -6,6 +6,7 @@
         <item>Add Feed</item>
         <item>View Feed</item>
         <item>Remove Feed</item>
+        <item>Mark All as Read</item>
     </string-array>
     <string name="action_share">Share Article</string>
     <string name="loading_articles">Loading new articles&#8230;</string>
