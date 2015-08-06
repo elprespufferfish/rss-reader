@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -36,13 +35,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -123,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         if (Intent.ACTION_SEND.equals(intent.getAction())) {
             if ("text/plain".equals(intent.getType())) {
                 String address = intent.getStringExtra(Intent.EXTRA_TEXT);
-                new AddFeedTask().execute(address);
+                new AddFeedTask(this).execute(address);
             }
         }
 
@@ -296,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
                                     dialog.dismiss();;
                                     EditText feedUrlInput = (EditText) addFeedDialogView.findViewById(R.id.feed_url);
                                     String feedUrl = feedUrlInput.getText().toString();
-                                    new AddFeedTask().execute(feedUrl);
+                                    new AddFeedTask(MainActivity.this).execute(feedUrl);
                                 }
                             })
                             .setNegativeButton(R.string.add_feed_cancel, new DialogInterface.OnClickListener() {
@@ -406,150 +401,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 default:
                     throw new IllegalArgumentException("Unexpected menu item at position " + position);
-            }
-        }
-
-    }
-
-    private class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
-
-        private ProgressDialog progressDialog;
-        private Exception exception;
-
-        @Override
-        protected void onPreExecute() {
-            this.progressDialog = ProgressDialog.show(MainActivity.this, null, MainActivity.this.getString(R.string.searching_for_feeds), true);
-        }
-
-        @Override
-        protected List<Feed> doInBackground(String... params) {
-            if (params.length != 1) {
-                throw new IllegalArgumentException("Expected single feedUrl parameter.  Received: " + Arrays.toString(params));
-            }
-            String feedUrl = params[0];
-            try {
-                List<Feed> feeds = Feeds.getInstance().getFeeds(feedUrl);
-                if (feeds.size() == 1) {
-                    // only one feed, just add it
-                    Feed feed = feeds.get(0);
-                    Feeds.getInstance().addFeed(feed);
-                }
-                return feeds;
-            } catch (Exception e) {
-                this.exception = e;
-                return null;
-            }
-        }
-        @Override
-        protected void onPostExecute(final List<Feed> feeds) {
-            progressDialog.dismiss();
-
-            if (exception != null) {
-                // it dun broke
-                if (exception instanceof FeedAlreadyAddedException) {
-                    Toast.makeText(
-                            MainActivity.this,
-                            MainActivity.this.getString(R.string.feed_already_present, exception.getMessage()),
-                            Toast.LENGTH_SHORT)
-                            .show();
-                } else {
-                    Toast.makeText(
-                            MainActivity.this,
-                            MainActivity.this.getString(R.string.add_feed_failure, exception.getMessage()),
-                            Toast.LENGTH_LONG)
-                            .show();
-                }
-                return;
-            }
-
-            if (feeds.size() == 0) {
-                // nothing autodiscovered
-                Toast.makeText(
-                        MainActivity.this,
-                        R.string.no_feed_to_add,
-                        Toast.LENGTH_LONG)
-                        .show();;
-            } else if (feeds.size() == 1) {
-                // single feed was added
-                Feed feed = feeds.get(0);
-                Toast.makeText(
-                        MainActivity.this,
-                        MainActivity.this.getString(R.string.feed_added, feed.getName()),
-                        Toast.LENGTH_SHORT)
-                        .show();
-            } else {
-                List<CharSequence> feedTitles = new ArrayList<>(feeds.size());
-                for (Feed feed : feeds) {
-                    feedTitles.add(feed.getName());
-                }
-
-                final Set<Feed> feedsToAdd = new HashSet<>();
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle(R.string.add_feeds_title)
-                        .setMultiChoiceItems(feedTitles.toArray(new CharSequence[0]), null, new DialogInterface.OnMultiChoiceClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                                if (isChecked) {
-                                    feedsToAdd.add(feeds.get(which));
-                                } else {
-                                    feedsToAdd.remove(feeds.get(which));
-                                }
-                            }
-                        })
-                        .setPositiveButton(R.string.add_feeds_ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                new AddFeedsTask().execute(feeds.toArray(new Feed[0]));
-                            }
-                        })
-                        .setNegativeButton(R.string.add_feeds_cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        })
-                        .show();
-            }
-        }
-    }
-
-    private class AddFeedsTask extends AsyncTask<Feed, Void, Void> {
-
-        private Exception exception;
-
-        @Override
-        protected Void doInBackground(Feed... feeds) {
-            if (feeds.length == 0) throw new IllegalArgumentException("Must be called with Feeds to add");
-
-            for (Feed feed : feeds) {
-                try {
-                    Feeds.getInstance().addFeed(feed);
-                } catch (FeedAlreadyAddedException ignored) {
-                    // ignore
-                } catch (Exception e) {
-                    this.exception = e;
-                    return null;
-                }
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void v) {
-            if (exception != null) {
-                Toast.makeText(
-                        MainActivity.this,
-                        MainActivity.this.getString(R.string.add_feed_failure, exception.getMessage()),
-                        Toast.LENGTH_LONG)
-                        .show();
-            } else {
-                Toast.makeText(
-                        MainActivity.this,
-                        MainActivity.this.getString(R.string.feeds_added),
-                        Toast.LENGTH_SHORT)
-                        .show();
             }
         }
 
