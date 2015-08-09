@@ -14,6 +14,7 @@ import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.design.widget.NavigationView;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
@@ -25,10 +26,7 @@ import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import org.slf4j.Logger;
@@ -91,12 +89,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.main);
 
         // set up left drawer
-        ListView drawerList = (ListView) findViewById(R.id.left_drawer);
-        drawerList.setAdapter(new ArrayAdapter<String>(
-                this,
-                android.R.layout.simple_list_item_1,
-                getResources().getStringArray(R.array.drawer_items)));
-        drawerList.setOnItemClickListener(new DrawerClickListener());
+        NavigationView navigationView = (NavigationView) findViewById(R.id.left_drawer);
+        navigationView.setNavigationItemSelectedListener(new NavigationClickListener());
 
         // tie drawer to action bar
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -269,13 +263,12 @@ public class MainActivity extends AppCompatActivity {
         shareActionProvider.setShareIntent(intent);
     }
 
-    private class DrawerClickListener implements ListView.OnItemClickListener {
+    private class NavigationClickListener implements NavigationView.OnNavigationItemSelectedListener {
 
         @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            switch (position) {
-                case 0: { // TODO
-                    // Refresh
+        public boolean onNavigationItemSelected(MenuItem menuItem) {
+            switch (menuItem.getItemId()) {
+                case R.id.drawer_refresh: {
                     refreshDialog.show();
                     Intent refreshIntent = new Intent(MainActivity.this, RefreshService.class);
                     refreshIntent.putExtra(RefreshService.FORCE_REFRESH, Boolean.TRUE);
@@ -283,8 +276,7 @@ public class MainActivity extends AppCompatActivity {
                     drawerLayout.closeDrawers();
                     break;
                 }
-                case 1: {
-                    // Add Feed
+                case R.id.drawer_add_feed: {
                     final View addFeedDialogView = getLayoutInflater().inflate(R.layout.add_feed_dialog, null);
                     AlertDialog addFeedDialog = new AlertDialog.Builder(MainActivity.this)
                             .setView(addFeedDialogView)
@@ -306,8 +298,7 @@ public class MainActivity extends AppCompatActivity {
                     addFeedDialog.show();
                     break;
                 }
-                case 2: {
-                    // View Feed
+                case R.id.drawer_view_feed: {
                     Map<Feed, Integer> feeds = Feeds.getInstance().getFeedsWithContent();
 
                     final Map<Feed, Integer> allFeeds = new LinkedHashMap<>();
@@ -357,8 +348,7 @@ public class MainActivity extends AppCompatActivity {
                     viewFeedDialog.show();
                     break;
                 }
-                case 3: {
-                    // Remove Feed
+                case R.id.drawer_remove_feed: {
                     final List<Feed> feeds = Feeds.getInstance().getFeeds();
 
                     List<String> feedNames = new ArrayList<>(feeds.size());
@@ -402,15 +392,15 @@ public class MainActivity extends AppCompatActivity {
                     viewFeedDialog.show();
                     break;
                 }
-                case 4: {
-                    // Mark All as Read
+                case R.id.drawer_mark_all_read: {
                     Feeds.getInstance().markAllAsRead(currentFeed);
                     drawerLayout.closeDrawers();
                     break;
                 }
                 default:
-                    throw new IllegalArgumentException("Unexpected menu item at position " + position);
+                    throw new IllegalArgumentException("Unexpected menu item: " + menuItem);
             }
+            return true;
         }
 
     }

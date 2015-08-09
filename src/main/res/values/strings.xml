@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">RSS Reader</string>
-    <string-array name="drawer_items">
-        <item>Refresh</item>
-        <item>Add Feed</item>
-        <item>View Feed</item>
-        <item>Remove Feed</item>
-        <item>Mark All as Read</item>
-    </string-array>
+
+    <string name="drawer_refresh">Refresh</string>
+    <string name="drawer_add_feed">Add Feed</string>
+    <string name="drawer_view_feed">View Feed</string>
+    <string name="drawer_remove_feed">Remove Feed</string>
+    <string name="drawer_mark_all_read">Mark All as Read</string>
+
     <string name="action_share">Share Article</string>
     <string name="loading_articles">Loading new articles&#8230;</string>
     <string name="refresh_failed">Refresh Failed</string>
