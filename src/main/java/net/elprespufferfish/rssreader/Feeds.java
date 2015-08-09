@@ -252,7 +252,7 @@ public class Feeds {
     private void vacuum() {
         long startTime = System.nanoTime();
         database.execSQL("VACUUM");
-        long vacuumDuration = System.nanoTime() - startTime;
+        long vacuumDuration = MILLISECONDS.convert(System.nanoTime() - startTime, NANOSECONDS);
         LOGGER.info("Vacuum complete in " + vacuumDuration + "ms");
     }
 
