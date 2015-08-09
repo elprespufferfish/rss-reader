@@ -5,11 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <EditText
-        android:id="@+id/feed_url"
-        android:inputType="textUri"
+    <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/add_feed_hint" />
+        >
+        <EditText
+            android:id="@+id/feed_url"
+            android:inputType="textUri"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/add_feed_hint" />
+    </android.support.design.widget.TextInputLayout>
 
 </LinearLayout>
