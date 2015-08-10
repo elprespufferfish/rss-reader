@@ -3,8 +3,8 @@ package net.elprespufferfish.rssreader;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,37 +57,36 @@ class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
         if (exception != null) {
             // it dun broke
             if (exception instanceof FeedAlreadyAddedException) {
-                Toast.makeText(
-                        context,
+                Snackbar.make(
+                        context.findViewById(R.id.pager),
                         context.getString(R.string.feed_already_present, exception.getMessage()),
-                        Toast.LENGTH_SHORT)
-                        .show();
+                        Snackbar.LENGTH_SHORT
+                ).show();
             } else {
-                Toast.makeText(
-                        context,
+                Snackbar.make(
+                        context.findViewById(R.id.pager),
                         context.getString(R.string.add_feed_failure, exception.getMessage()),
-                        Toast.LENGTH_LONG)
-                        .show();
+                        Snackbar.LENGTH_LONG
+                ).show();
             }
             return;
         }
 
         if (feeds.size() == 0) {
             // nothing autodiscovered
-            Toast.makeText(
-                    context,
+            Snackbar.make(
+                    context.findViewById(R.id.pager),
                     R.string.no_feed_to_add,
-                    Toast.LENGTH_LONG)
-                    .show();
-            ;
+                    Snackbar.LENGTH_LONG
+            ).show();
         } else if (feeds.size() == 1) {
             // single feed was added
             Feed feed = feeds.get(0);
-            Toast.makeText(
-                    context,
+            Snackbar.make(
+                    context.findViewById(R.id.pager),
                     context.getString(R.string.feed_added, feed.getName()),
-                    Toast.LENGTH_SHORT)
-                    .show();
+                    Snackbar.LENGTH_SHORT
+            ).show();
         } else {
             List<CharSequence> feedTitles = new ArrayList<>(feeds.size());
             for (Feed feed : feeds) {

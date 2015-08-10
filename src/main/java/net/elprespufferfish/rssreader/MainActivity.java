@@ -1,8 +1,5 @@
 package net.elprespufferfish.rssreader;
 
-import static android.widget.Toast.LENGTH_LONG;
-import static android.widget.Toast.LENGTH_SHORT;
-
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -16,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
@@ -29,7 +27,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -53,27 +50,27 @@ public class MainActivity extends AppCompatActivity {
 
             boolean didRefreshComplete = intent.getBooleanExtra(RefreshService.DID_REFRESH_COMPLETE, Boolean.FALSE);
             if (!didRefreshComplete) {
-                Toast.makeText(
-                        MainActivity.this,
+                Snackbar.make(
+                        MainActivity.this.findViewById(R.id.pager),
                         MainActivity.this.getString(R.string.refresh_failed),
-                        LENGTH_LONG)
-                        .show();
+                        Snackbar.LENGTH_LONG
+                ).show();
                 return;
             }
 
             boolean wasRefreshStarted = intent.getBooleanExtra(RefreshService.WAS_REFRESH_STARTED, Boolean.FALSE);
             if (!wasRefreshStarted) {
-                Toast.makeText(
-                        MainActivity.this,
-                        MainActivity.this.getString(R.string.refresh_already_started),
-                        LENGTH_SHORT)
-                        .show();
+                Snackbar.make(
+                        MainActivity.this.findViewById(R.id.pager),
+                        R.string.refresh_already_started,
+                        Snackbar.LENGTH_SHORT
+                ).show();
             } else {
-                Toast.makeText(
-                        MainActivity.this,
-                        MainActivity.this.getString(R.string.refresh_complete),
-                        LENGTH_SHORT)
-                        .show();
+                Snackbar.make(
+                        MainActivity.this.findViewById(R.id.pager),
+                        R.string.refresh_complete,
+                        Snackbar.LENGTH_SHORT
+                ).show();
                 MainActivity.this.reloadPager(nullFeed);
             }
         }
@@ -384,11 +381,11 @@ public class MainActivity extends AppCompatActivity {
                                     int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
                                     Feed feedToRemove = feeds.get(selectedPosition);
                                     Feeds.getInstance().removeFeed(feedToRemove);
-                                    Toast.makeText(
-                                            MainActivity.this,
-                                            MainActivity.this.getString(R.string.remove_feed_complete, feedToRemove.getName()),
-                                            Toast.LENGTH_LONG)
-                                            .show();
+                                    Snackbar.make(
+                                            findViewById(R.id.pager),
+                                            getString(R.string.remove_feed_complete, feedToRemove.getName()),
+                                            Snackbar.LENGTH_LONG
+                                    ).show();
                                     drawerLayout.closeDrawers();
 
                                     if (currentFeed.equals(feedToRemove)) {

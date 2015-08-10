@@ -1,19 +1,19 @@
 package net.elprespufferfish.rssreader;
 
-import android.content.Context;
+import android.app.Activity;
 import android.os.AsyncTask;
-import android.widget.Toast;
+import android.support.design.widget.Snackbar;
 
 /**
  * Add multiple feeds in the background
  */
 public class AddFeedsTask extends AsyncTask<Feed, Void, Void> {
 
-    private final Context context;
+    private final Activity activity;
     private Exception exception;
 
-    public AddFeedsTask(Context context) {
-        this.context = context;
+    public AddFeedsTask(Activity activity) {
+        this.activity = activity;
     }
 
     @Override
@@ -38,17 +38,17 @@ public class AddFeedsTask extends AsyncTask<Feed, Void, Void> {
     @Override
     protected void onPostExecute(Void v) {
         if (exception != null) {
-            Toast.makeText(
-                    context,
-                    context.getString(R.string.add_feed_failure, exception.getMessage()),
-                    Toast.LENGTH_LONG)
-                    .show();
+            Snackbar.make(
+                    activity.findViewById(R.id.pager),
+                    activity.getString(R.string.add_feed_failure, exception.getMessage()),
+                    Snackbar.LENGTH_LONG
+            ).show();
         } else {
-            Toast.makeText(
-                    context,
-                    context.getString(R.string.feeds_added),
-                    Toast.LENGTH_SHORT)
-                    .show();
+            Snackbar.make(
+                    activity.findViewById(R.id.pager),
+                    R.string.feeds_added,
+                    Snackbar.LENGTH_SHORT
+            ).show();
         }
     }
 
