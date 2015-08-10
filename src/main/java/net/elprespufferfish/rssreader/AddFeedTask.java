@@ -111,7 +111,7 @@ class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
-                            new AddFeedsTask(context).execute(feeds.toArray(new Feed[0]));
+                            new AddFeedsTask(context).execute(feedsToAdd.toArray(new Feed[0]));
                         }
                     })
                     .setNegativeButton(R.string.add_feeds_cancel, new DialogInterface.OnClickListener() {
