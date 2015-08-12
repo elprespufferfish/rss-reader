@@ -49,7 +49,11 @@ public class ArticleFragment extends Fragment {
             imageView.setVisibility(ImageView.VISIBLE);
             webView.setVisibility(WebView.GONE);
 
-            Picasso.with(this.getActivity()).load(imageUrl).into(imageView);
+            Picasso.with(this.getActivity())
+                    .load(imageUrl)
+                    .fit()
+                    .centerInside()
+                    .into(imageView);
         } else {
             LOGGER.debug("Displaying WebView");
             imageView.setVisibility(ImageView.GONE);
