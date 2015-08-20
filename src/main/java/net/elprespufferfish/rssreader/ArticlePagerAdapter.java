@@ -32,50 +32,12 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int i) {
-        String[] selectionArgs = new String[0];
-        String query = "SELECT " +
-                ArticleTable.TABLE_NAME + "." + ArticleTable._ID + ", " +
-                FeedTable.TABLE_NAME + "." + FeedTable.FEED_NAME + ", " +
-                ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_NAME + ", " +
-                ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_URL + ", " +
-                ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_PUBLICATION_DATE + ", " +
-                ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_DESCRIPTION + ", " +
-                ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_IMAGE_URL + ", " +
-                ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_GUID + " " +
-                "FROM " + ArticleTable.TABLE_NAME + " " +
-                "JOIN " + FeedTable.TABLE_NAME + " " +
-                "ON " + ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_FEED + "=" + FeedTable.TABLE_NAME + "." + FeedTable._ID + " ";
-        if (feedUrl != null) {
-            query += "WHERE " + FeedTable.FEED_URL + "=? ";
-            selectionArgs = new String[] { feedUrl };
-        }
-        query += "ORDER BY " + ArticleTable.ARTICLE_PUBLICATION_DATE + " DESC " +
-                "LIMIT 1 " +
-                "OFFSET " + i;
-        Cursor articleCursor = database.rawQuery(query, selectionArgs);
-        try {
-            articleCursor.moveToNext();
-
-            Builder articleBuilder = new Article.Builder();
-            articleBuilder.setId(articleCursor.getInt(0));
-            articleBuilder.setFeed(articleCursor.getString(1));
-            articleBuilder.setTitle(articleCursor.getString(2));
-            articleBuilder.setLink(articleCursor.getString(3));
-            articleBuilder.setPublicationDate(new DateTime(articleCursor.getLong(4)));
-            articleBuilder.setDescription(articleCursor.getString(5));
-            articleBuilder.setImageUrl(articleCursor.getString(6));
-            articleBuilder.setGuid(articleCursor.getString(7));
-            Article article = articleBuilder.build();
-
-            Fragment fragment = new ArticleFragment();
-            Bundle bundle = new Bundle();
-            bundle.putParcelable(ArticleFragment.ARTICLE_KEY, article);
-            fragment.setArguments(bundle);
-
-            return fragment;
-        } finally {
-            articleCursor.close();
-        }
+        Fragment fragment = new ArticleFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(ArticleFragment.ARTICLE_FEED_URL_KEY, feedUrl);
+        bundle.putInt(ArticleFragment.ARTICLE_INDEX_KEY, i);
+        fragment.setArguments(bundle);
+        return fragment;
     }
 
     @Override

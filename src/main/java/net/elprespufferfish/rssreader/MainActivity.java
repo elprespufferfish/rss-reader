@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.NavigationView;
@@ -23,11 +24,15 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private EventBus eventBus;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
     private ViewPager viewPager;
@@ -87,6 +93,9 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        eventBus = RssReaderApplication.fromContext(this).getEventBus();
+        eventBus.register(this);
 
         // set up left drawer
         NavigationView navigationView = (NavigationView) findViewById(R.id.left_drawer);
@@ -140,10 +149,6 @@ public class MainActivity extends AppCompatActivity {
 
         MenuItem shareItem = menu.findItem(R.id.action_share);
         MenuItemCompat.setActionProvider(shareItem, shareActionProvider);
-        if (articlePagerAdapter.getCount() != 0) {
-            ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(viewPager.getCurrentItem());
-            updateShareAction(articleFragment);
-        }
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -209,15 +214,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         this.articlePagerAdapter.close();
+        eventBus.unregister(this);
     }
 
     private void reloadPager(Feed feed) {
         currentFeed = feed;
+
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.clearOnPageChangeListeners();
         if (articlePagerAdapter != null) articlePagerAdapter.close();
+
         articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, feed.getUrl());
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        final ViewPager.OnPageChangeListener pageChangeListener = new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 // no-op
@@ -225,33 +233,41 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(position);
-                setTitle(articleFragment);
-                updateShareAction(articleFragment);
+                MainActivity.this.eventBus.post(new ArticleSelectedEvent(position));
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
                 // no-op
             }
-        });
-        viewPager.addOnPageChangeListener(new ArticleReadListener(articlePagerAdapter));
+        };
+        viewPager.addOnPageChangeListener(pageChangeListener);
         viewPager.setAdapter(articlePagerAdapter);
-        if (articlePagerAdapter.getCount() != 0) {
-            ArticleFragment articleFragment = (ArticleFragment) articlePagerAdapter.getItem(0);
-            setTitle(articleFragment);
-            updateShareAction(articleFragment);
+        // first page must be triggered manually
+        viewPager.post(new Runnable() {
+            @Override
+            public void run() {
+                pageChangeListener.onPageSelected(viewPager.getCurrentItem());
+            }
+        });
+    }
+
+    @Subscribe
+    public void onArticleLoaded(ArticleLoadedEvent e) {
+        if (e.getArticleIndex() != viewPager.getCurrentItem()) {
+            return;
         }
-    }
 
-    private void setTitle(ArticleFragment articleFragment) {
-        Article article = articleFragment.getArguments().getParcelable(ArticleFragment.ARTICLE_KEY);
+        final Article article = e.getArticle();
+        AsyncTask.THREAD_POOL_EXECUTOR.execute(new Runnable() {
+            @Override
+            public void run() {
+                Feeds.getInstance().markArticleRead(article);
+            }
+        });
+
+
         MainActivity.this.getSupportActionBar().setTitle(article.getFeed());
-    }
-
-    private void updateShareAction(ArticleFragment articleFragment) {
-        Bundle arguments = articleFragment.getArguments();
-        Article article = arguments.getParcelable(ArticleFragment.ARTICLE_KEY);
 
         String textToShare = article.getTitle() + "\n\n" + article.getLink();
         Intent intent = new Intent();

@@ -9,13 +9,23 @@ import android.os.Build;
 import android.os.StrictMode;
 import android.webkit.WebView;
 
+import com.google.common.eventbus.EventBus;
+
 import java.util.Calendar;
 
 public class RssReaderApplication extends Application {
 
+    public static RssReaderApplication fromContext(Context context) {
+        return (RssReaderApplication) context.getApplicationContext();
+    }
+
+    private EventBus eventBus;
+
     @Override
     public void onCreate() {
         super.onCreate();
+
+        eventBus = new EventBus();
 
         Feeds.initialize(this);
 
@@ -39,6 +49,10 @@ public class RssReaderApplication extends Application {
                 WebView.setWebContentsDebuggingEnabled(true);
             }
         }
+    }
+
+    public EventBus getEventBus() {
+        return eventBus;
     }
 
     public void scheduleRefresh() {
