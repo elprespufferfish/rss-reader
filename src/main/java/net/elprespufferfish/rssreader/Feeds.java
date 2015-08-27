@@ -56,12 +56,13 @@ public class Feeds {
         tmp.add("text/html");
         HTML_CONTENT_TYPES = ImmutableSet.copyOf(tmp);
     }
-    private static final Set<String> RSS_CONTENT_TYPES;
+    private static final Set<String> FEED_CONTENT_TYPES;
     static {
         Set<String> tmp = new HashSet<>();
         tmp.add("application/rss+xml");
+        tmp.add("application/atom+xml");
         tmp.add("text/xml");
-        RSS_CONTENT_TYPES = ImmutableSet.copyOf(tmp);
+        FEED_CONTENT_TYPES = ImmutableSet.copyOf(tmp);
     }
 
     private static volatile Feeds INSTANCE;
@@ -106,7 +107,7 @@ public class Feeds {
             String contentType = parseContentType(connection.getHeaderField(HttpHeaders.CONTENT_TYPE));
             if (isHtml(contentType)) {
                 return autoDiscoverFeeds(connection, feedAddress);
-            } else if(isRss(contentType)) {
+            } else if (isFeed(contentType)) {
                 return Collections.singletonList(getFeed(connection, feedAddress));
             } else {
                 throw new RuntimeException("Cannot handle content type '" + contentType + "'");
@@ -136,8 +137,8 @@ public class Feeds {
         return HTML_CONTENT_TYPES.contains(contentType);
     }
 
-    private boolean isRss(String contentType) {
-        return RSS_CONTENT_TYPES.contains(contentType);
+    private boolean isFeed(String contentType) {
+        return FEED_CONTENT_TYPES.contains(contentType);
     }
 
     /**
@@ -190,37 +191,79 @@ public class Feeds {
             XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
             xmlPullParser.setInput(feedInput, null);
 
-            boolean isInChannel = false;
-
-            int eventType = xmlPullParser.getEventType();
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-
-                switch (eventType) {
-                    case XmlPullParser.START_TAG: {
-                        if ("channel".equals(xmlPullParser.getName())) {
-                            isInChannel = true;
-                        } else {
-                            if (isInChannel && "title".equals(xmlPullParser.getName())) {
-                                xmlPullParser.next();
-                                String feedName = xmlPullParser.getText();
-                                return new Feed.Builder()
-                                        .withName(feedName)
-                                        .withUrl(feedAddress)
-                                        .build();
-                            }
-
-                            isInChannel = false;
-                        }
-                        break;
-                    }
-                    default: {
-                        // no-op
-                    }
-                }
-                eventType = xmlPullParser.next();
+            xmlPullParser.next();
+            if (isRss(xmlPullParser)) {
+                return parseRssFeed(feedAddress, xmlPullParser);
+            } else if (isAtom(xmlPullParser)) {
+                return parseAtomFeed(feedAddress, xmlPullParser);
+            } else {
+                throw new UnsupportedOperationException("Unsupported XML format");
             }
         } catch (Exception e) {
-            throw new RuntimeException("Could not determine feed title at " + feedAddress, e);
+            throw new UnsupportedOperationException("Unable to parse " + feedAddress, e);
+        }
+    }
+
+    private boolean isRss(XmlPullParser xmlPullParser) throws IOException, XmlPullParserException {
+        return "rss".equals(xmlPullParser.getName());
+    }
+
+    private boolean isAtom(XmlPullParser xmlPullParser) {
+        return "feed".equals(xmlPullParser.getName());
+    }
+
+    private Feed parseRssFeed(String feedAddress, XmlPullParser xmlPullParser) throws XmlPullParserException, IOException {
+        boolean isInChannel = false;
+
+        int eventType = xmlPullParser.getEventType();
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            switch (eventType) {
+                case XmlPullParser.START_TAG: {
+                    if ("channel".equals(xmlPullParser.getName())) {
+                        isInChannel = true;
+                    } else {
+                        if (isInChannel && "title".equals(xmlPullParser.getName())) {
+                            xmlPullParser.next();
+                            String feedName = xmlPullParser.getText();
+                            return new Feed.Builder()
+                                    .withName(feedName)
+                                    .withUrl(feedAddress)
+                                    .build();
+                        }
+
+                        isInChannel = false;
+                    }
+                    break;
+                }
+                default: {
+                    // no-op
+                }
+            }
+            eventType = xmlPullParser.next();
+        }
+
+        throw new IllegalArgumentException("Could not determine feed title at " + feedAddress);
+    }
+
+    private Feed parseAtomFeed(String feedAddress, XmlPullParser xmlPullParser) throws XmlPullParserException, IOException {
+        int eventType = xmlPullParser.getEventType();
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            switch (eventType) {
+                case XmlPullParser.START_TAG: {
+                    if ("title".equals(xmlPullParser.getName())) {
+                        xmlPullParser.next();
+                        String feedName = xmlPullParser.getText();
+                        return new Feed.Builder()
+                                .withName(feedName)
+                                .withUrl(feedAddress)
+                                .build();
+                    }
+                }
+                default: {
+                    // no-op
+                }
+            }
+            xmlPullParser.next();
         }
 
         throw new IllegalArgumentException("Could not determine feed title at " + feedAddress);
@@ -475,6 +518,18 @@ public class Feeds {
             XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
             xmlPullParser.setInput(feedInput, null);
 
+            xmlPullParser.next();
+            String articleKey = null;
+            boolean isRss = isRss(xmlPullParser);
+            boolean isAtom = isAtom(xmlPullParser);
+            if (isRss) {
+                articleKey = "item";
+            } else if (isAtom) {
+                articleKey = "entry";
+            } else {
+                throw new RuntimeException("Unsupported XML format at " + feedAddress);
+            }
+
             List<Article> articles = new LinkedList<Article>();
 
             DateTime maxArticleAge = DateTime.now().minusDays(MAX_AGE_DAYS);
@@ -483,8 +538,14 @@ public class Feeds {
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 switch (eventType) {
                 case XmlPullParser.START_TAG: {
-                    if ("item".equals(xmlPullParser.getName())) {
-                        Article article = Articles.fromXml(feedAddress, xmlPullParser);
+                    if (articleKey.equals(xmlPullParser.getName())) {
+
+                        Article article = null;
+                        if (isRss) {
+                            article = Articles.fromRss(feedAddress, xmlPullParser);
+                        } else if (isAtom) {
+                            article = Articles.fromAtom(feedAddress, xmlPullParser);
+                        }
 
                         if (latestGuid != null && latestGuid.equals(article.getGuid())) {
                             // already read this part of the feed
