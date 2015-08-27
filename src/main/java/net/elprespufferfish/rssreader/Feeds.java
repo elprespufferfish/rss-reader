@@ -5,6 +5,8 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,10 +41,28 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.os.AsyncTask;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.net.HttpHeaders;
+
 public class Feeds {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Feeds.class);
     private static final int MAX_AGE_DAYS = 14; // do not store articles older than this
+
+    private static final Set<String> HTML_CONTENT_TYPES;
+    static {
+        Set<String> tmp = new HashSet<>();
+        tmp.add("text/html");
+        HTML_CONTENT_TYPES = ImmutableSet.copyOf(tmp);
+    }
+    private static final Set<String> RSS_CONTENT_TYPES;
+    static {
+        Set<String> tmp = new HashSet<>();
+        tmp.add("application/rss+xml");
+        tmp.add("text/xml");
+        RSS_CONTENT_TYPES = ImmutableSet.copyOf(tmp);
+    }
 
     private static volatile Feeds INSTANCE;
 
@@ -79,31 +99,62 @@ public class Feeds {
      * @throws RuntimeException if the title could not be determined
      */
     public List<Feed> getFeeds(String feedAddress) {
+        HttpURLConnection connection = null;
         try {
-            return autoDiscoverFeeds(feedAddress);
+            connection = connect(feedAddress);
+
+            String contentType = parseContentType(connection.getHeaderField(HttpHeaders.CONTENT_TYPE));
+            if (isHtml(contentType)) {
+                return autoDiscoverFeeds(connection, feedAddress);
+            } else if(isRss(contentType)) {
+                return Collections.singletonList(getFeed(connection, feedAddress));
+            } else {
+                throw new RuntimeException("Cannot handle content type '" + contentType + "'");
+            }
         } catch (Exception e) {
-            LOGGER.info("Could not autodiscover feeds at {}", feedAddress, e);
-            return Collections.singletonList(getFeed(feedAddress));
+            throw Throwables.propagate(e);
+        } finally {
+            if (connection != null) connection.disconnect();
         }
     }
 
+    private HttpURLConnection connect(String address) throws MalformedURLException, IOException {
+        URL url = new URL(address);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setReadTimeout(60000);
+        connection.setConnectTimeout(60000);
+        return connection;
+    }
+
+    private String parseContentType(String contentTypeHeader) {
+        // TODO - make less shitty
+        String[] parts = contentTypeHeader.split(";");
+        return parts[0];
+    }
+
+    private boolean isHtml(String contentType) {
+        return HTML_CONTENT_TYPES.contains(contentType);
+    }
+
+    private boolean isRss(String contentType) {
+        return RSS_CONTENT_TYPES.contains(contentType);
+    }
 
     /**
      * Attempt to autodiscover feeds as described at <a href="http://www.rssboard.org/rss-autodiscovery">http://www.rssboard.org/rss-autodiscovery</a>
      * @return List of autodiscovered RSS feeds
      */
-    private List<Feed> autoDiscoverFeeds(String discoveryAddress) {
+    private List<Feed> autoDiscoverFeeds(HttpURLConnection connection, String discoveryAddress) {
         List<Feed> feeds = new LinkedList<>();
 
         try {
-            URL discoveryUrl = new URL(discoveryAddress);
-
-            Document document = Jsoup.connect(discoveryAddress).get();
+            Document document = Jsoup.parse(connection.getInputStream(), null, discoveryAddress);
             Elements elements = document.select("link[rel=alternate][type=application/rss+xml]");
             for (Element element : elements) {
                 String feedUrl = element.attr("href");
                 if (feedUrl.startsWith("/")) {
                     // ensure feedUrl is absolute
+                    URL discoveryUrl = new URL(discoveryAddress);
                     feedUrl = discoveryUrl.getProtocol() + "://" + discoveryUrl.getHost() + (discoveryUrl.getPort() != -1 ? ":" + discoveryUrl.getPort() : "") + feedUrl;
                 }
 
@@ -120,10 +171,21 @@ public class Feeds {
     }
 
     private Feed getFeed(String feedAddress) {
-        InputStream feedInput = null;
+        HttpURLConnection connection = null;
         try {
-            URL feedUrl = new URL(feedAddress);
-            feedInput = feedUrl.openStream();
+            connection = connect(feedAddress);
+
+            return getFeed(connection, feedAddress);
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+    }
+
+    private Feed getFeed(HttpURLConnection connection, String feedAddress) {
+        try {
+            InputStream feedInput = connection.getInputStream();
 
             XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
             xmlPullParser.setInput(feedInput, null);
@@ -159,14 +221,6 @@ public class Feeds {
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not determine feed title at " + feedAddress, e);
-        } finally {
-            if (feedInput != null) {
-                try {
-                    feedInput.close();
-                } catch (IOException ignored) {
-                    // ignored
-                }
-            }
         }
 
         throw new IllegalArgumentException("Could not determine feed title at " + feedAddress);
