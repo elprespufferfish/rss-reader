@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
 import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
+import net.elprespufferfish.rssreader.net.HttpUrlConnectionFactory;
 
 import org.joda.time.DateTime;
 import org.jsoup.Jsoup;
@@ -43,6 +44,7 @@ import android.os.AsyncTask;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Closeables;
 import com.google.common.net.HttpHeaders;
 
 public class Feeds {
@@ -81,6 +83,7 @@ public class Feeds {
     private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private final SQLiteDatabase database;
     private final XmlPullParserFactory xmlPullParserFactory;
+    private final HttpUrlConnectionFactory httpUrlConnectionFactory = new HttpUrlConnectionFactory();
     private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
 
     private Feeds(Context context) {
@@ -102,7 +105,7 @@ public class Feeds {
     public List<Feed> getFeeds(String feedAddress) {
         HttpURLConnection connection = null;
         try {
-            connection = connect(feedAddress);
+            connection = httpUrlConnectionFactory.create(new URL(feedAddress));
 
             String contentType = parseContentType(connection.getHeaderField(HttpHeaders.CONTENT_TYPE));
             if (isHtml(contentType)) {
@@ -117,14 +120,6 @@ public class Feeds {
         } finally {
             if (connection != null) connection.disconnect();
         }
-    }
-
-    private HttpURLConnection connect(String address) throws MalformedURLException, IOException {
-        URL url = new URL(address);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setReadTimeout(60000);
-        connection.setConnectTimeout(60000);
-        return connection;
     }
 
     private String parseContentType(String contentTypeHeader) {
@@ -174,7 +169,7 @@ public class Feeds {
     private Feed getFeed(String feedAddress) {
         HttpURLConnection connection = null;
         try {
-            connection = connect(feedAddress);
+            connection = httpUrlConnectionFactory.create(new URL(feedAddress));
 
             return getFeed(connection, feedAddress);
         } catch (Exception e) {
@@ -512,9 +507,11 @@ public class Feeds {
     }
 
     private List<Article> parseArticles(String feedAddress, String latestGuid) throws IOException, XmlPullParserException {
-        URL feedUrl = new URL(feedAddress);
-        InputStream feedInput = feedUrl.openStream();
+        HttpURLConnection connection = httpUrlConnectionFactory.create(new URL(feedAddress));
+        InputStream feedInput = null;
         try {
+            feedInput = connection.getInputStream();
+
             XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
             xmlPullParser.setInput(feedInput, null);
 
@@ -569,7 +566,8 @@ public class Feeds {
             }
             return articles;
         } finally {
-            feedInput.close();
+            Closeables.closeQuietly(feedInput);
+            if (connection != null) connection.disconnect();
         }
     }
 
