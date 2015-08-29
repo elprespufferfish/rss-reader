@@ -6,7 +6,6 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,6 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
 import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
 import net.elprespufferfish.rssreader.net.HttpUrlConnectionFactory;
+import net.elprespufferfish.rssreader.parsing.Parser;
+import net.elprespufferfish.rssreader.parsing.ParserFactory;
 
 import org.joda.time.DateTime;
 import org.jsoup.Jsoup;
@@ -180,88 +181,20 @@ public class Feeds {
     }
 
     private Feed getFeed(HttpURLConnection connection, String feedAddress) {
+        InputStream feedInput = null;
         try {
-            InputStream feedInput = connection.getInputStream();
+            feedInput = connection.getInputStream();
 
             XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
             xmlPullParser.setInput(feedInput, null);
 
-            xmlPullParser.next();
-            if (isRss(xmlPullParser)) {
-                return parseRssFeed(feedAddress, xmlPullParser);
-            } else if (isAtom(xmlPullParser)) {
-                return parseAtomFeed(feedAddress, xmlPullParser);
-            } else {
-                throw new UnsupportedOperationException("Unsupported XML format");
-            }
+            Parser feedParser = ParserFactory.newParser(xmlPullParser);
+            return feedParser.parseFeed(feedAddress, xmlPullParser);
         } catch (Exception e) {
             throw new UnsupportedOperationException("Unable to parse " + feedAddress, e);
+        } finally {
+            Closeables.closeQuietly(feedInput);
         }
-    }
-
-    private boolean isRss(XmlPullParser xmlPullParser) throws IOException, XmlPullParserException {
-        return "rss".equals(xmlPullParser.getName());
-    }
-
-    private boolean isAtom(XmlPullParser xmlPullParser) {
-        return "feed".equals(xmlPullParser.getName());
-    }
-
-    private Feed parseRssFeed(String feedAddress, XmlPullParser xmlPullParser) throws XmlPullParserException, IOException {
-        boolean isInChannel = false;
-
-        int eventType = xmlPullParser.getEventType();
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            switch (eventType) {
-                case XmlPullParser.START_TAG: {
-                    if ("channel".equals(xmlPullParser.getName())) {
-                        isInChannel = true;
-                    } else {
-                        if (isInChannel && "title".equals(xmlPullParser.getName())) {
-                            xmlPullParser.next();
-                            String feedName = xmlPullParser.getText();
-                            return new Feed.Builder()
-                                    .withName(feedName)
-                                    .withUrl(feedAddress)
-                                    .build();
-                        }
-
-                        isInChannel = false;
-                    }
-                    break;
-                }
-                default: {
-                    // no-op
-                }
-            }
-            eventType = xmlPullParser.next();
-        }
-
-        throw new IllegalArgumentException("Could not determine feed title at " + feedAddress);
-    }
-
-    private Feed parseAtomFeed(String feedAddress, XmlPullParser xmlPullParser) throws XmlPullParserException, IOException {
-        int eventType = xmlPullParser.getEventType();
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            switch (eventType) {
-                case XmlPullParser.START_TAG: {
-                    if ("title".equals(xmlPullParser.getName())) {
-                        xmlPullParser.next();
-                        String feedName = xmlPullParser.getText();
-                        return new Feed.Builder()
-                                .withName(feedName)
-                                .withUrl(feedAddress)
-                                .build();
-                    }
-                }
-                default: {
-                    // no-op
-                }
-            }
-            xmlPullParser.next();
-        }
-
-        throw new IllegalArgumentException("Could not determine feed title at " + feedAddress);
     }
 
     /**
@@ -351,7 +284,7 @@ public class Feeds {
     public List<Feed> getFeeds() {
         Cursor feedCursor = database.query(
                 FeedTable.TABLE_NAME,
-                new String[] { FeedTable.FEED_NAME, FeedTable.FEED_URL },
+                new String[]{FeedTable.FEED_NAME, FeedTable.FEED_URL},
                 null,
                 null,
                 null,
@@ -515,56 +448,8 @@ public class Feeds {
             XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
             xmlPullParser.setInput(feedInput, null);
 
-            xmlPullParser.next();
-            String articleKey = null;
-            boolean isRss = isRss(xmlPullParser);
-            boolean isAtom = isAtom(xmlPullParser);
-            if (isRss) {
-                articleKey = "item";
-            } else if (isAtom) {
-                articleKey = "entry";
-            } else {
-                throw new RuntimeException("Unsupported XML format at " + feedAddress);
-            }
-
-            List<Article> articles = new LinkedList<Article>();
-
-            DateTime maxArticleAge = DateTime.now().minusDays(MAX_AGE_DAYS);
-
-            int eventType = xmlPullParser.getEventType();
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                switch (eventType) {
-                case XmlPullParser.START_TAG: {
-                    if (articleKey.equals(xmlPullParser.getName())) {
-
-                        Article article = null;
-                        if (isRss) {
-                            article = Articles.fromRss(feedAddress, xmlPullParser);
-                        } else if (isAtom) {
-                            article = Articles.fromAtom(feedAddress, xmlPullParser);
-                        }
-
-                        if (latestGuid != null && latestGuid.equals(article.getGuid())) {
-                            // already read this part of the feed
-                            return articles;
-                        }
-
-                        if (article.getPublicationDate().isBefore(maxArticleAge)) {
-                            // too far back in feed
-                            return articles;
-                        }
-
-                        articles.add(article);
-                    }
-                    break;
-                }
-                default: {
-                    // no-op
-                }
-                }
-                eventType = xmlPullParser.next();
-            }
-            return articles;
+            Parser articleParser = ParserFactory.newParser(xmlPullParser);
+            return articleParser.parseArticles(feedAddress, xmlPullParser, MAX_AGE_DAYS, latestGuid);
         } finally {
             Closeables.closeQuietly(feedInput);
             if (connection != null) connection.disconnect();
