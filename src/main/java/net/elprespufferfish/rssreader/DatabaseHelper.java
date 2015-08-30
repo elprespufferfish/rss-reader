@@ -37,7 +37,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         defaultFeeds.put("xkcd.com", "https://xkcd.com/rss.xml");
         defaultFeeds.put("Android Developers Blog", "http://feeds.feedburner.com/blogspot/hsDu");
         defaultFeeds.put("Google Voice Blog", "http://feeds2.feedburner.com/GoogleVoiceBlog");
-        defaultFeeds.put("Planet Gentoo", "http://planet.gentoo.org/rss20.xml");
         defaultFeeds.put("cuteoverload", "http://cuteoverload.com/feed/");
 
         for (Entry<String, String> feedEntry : defaultFeeds.entrySet()) {
