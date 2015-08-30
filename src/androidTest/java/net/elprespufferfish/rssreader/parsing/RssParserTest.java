@@ -80,4 +80,21 @@ public class RssParserTest extends ActivityInstrumentationTestCase2<MainActivity
         // TODO - validate contents
     }
 
+    @Test
+    public void testTitleNotFirst() throws Exception {
+        // given
+        String feedAddress = "http://www.todo.com";
+        XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+        xmlPullParserFactory.setNamespaceAware(true);
+        XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
+        InputStream input = getInstrumentation().getContext().getResources().getAssets().open("raw/netflix.xml");
+        xmlPullParser.setInput(input, null);
+
+        // when
+        parser.parseFeed(feedAddress, xmlPullParser);
+
+        // then
+        // success
+    }
+
 }

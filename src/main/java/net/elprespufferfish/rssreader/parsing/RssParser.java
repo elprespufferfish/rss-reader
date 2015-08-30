@@ -49,10 +49,13 @@ public class RssParser extends BaseParser implements Parser {
                                     .withUrl(feedAddress)
                                     .build();
                         }
-
-                        isInChannel = false;
                     }
                     break;
+                }
+                case XmlPullParser.END_TAG: {
+                    if ("channel".equals(xmlPullParser.getName())) {
+                        isInChannel = false;
+                    }
                 }
                 default: {
                     // no-op

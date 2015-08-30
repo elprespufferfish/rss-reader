@@ -6,6 +6,9 @@ import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,6 +19,8 @@ import java.util.Set;
  * Handle searching for a new feed to add
  */
 class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AddFeedTask.class);
 
     private final MainActivity context;
     private ProgressDialog progressDialog;
@@ -63,6 +68,7 @@ class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
                         Snackbar.LENGTH_SHORT
                 ).show();
             } else {
+                LOGGER.error("Could not add feed", exception);
                 Snackbar.make(
                         context.findViewById(R.id.pager),
                         context.getString(R.string.add_feed_failure, exception.getMessage()),
