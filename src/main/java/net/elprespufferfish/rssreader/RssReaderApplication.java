@@ -65,7 +65,7 @@ public class RssReaderApplication extends Application {
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmManager.setInexactRepeating(
-                AlarmManager.ELAPSED_REALTIME,
+                AlarmManager.RTC_WAKEUP,
                 startTime.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY,
                 pendingIntent);
