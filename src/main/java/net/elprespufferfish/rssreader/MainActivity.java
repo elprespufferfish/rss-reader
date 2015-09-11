@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -22,7 +23,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -42,6 +42,8 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
+    private static final String GLOBAL_PREFS = "global";
+    private static final String IS_HIDING_READ_ARTICLES_PREF = "isHidingReadArticles";
 
     private BroadcastReceiver refreshCompletionReceiver = new BroadcastReceiver() {
         @Override
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     private ShareActionProvider shareActionProvider;
     private Feed nullFeed; // sentinel Feed to select 'all' feeds
     private Feed currentFeed;
+    private boolean isHidingReadArticles = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -97,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
         // set up left drawer
         NavigationView navigationView = (NavigationView) findViewById(R.id.left_drawer);
         navigationView.setNavigationItemSelectedListener(new NavigationClickListener());
+        isHidingReadArticles = getSharedPreferences(GLOBAL_PREFS, Context.MODE_PRIVATE).getBoolean(IS_HIDING_READ_ARTICLES_PREF, false);
+        navigationView.getMenu().findItem(R.id.drawer_toggle_unread).setTitle(isHidingReadArticles ? R.string.show_unread_articles : R.string.hide_unread_articles);
 
         // tie drawer to action bar
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -215,13 +220,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void reloadPager(Feed feed) {
+        // clean up previous feed
+        Feeds.getInstance().finalizeGreyArticles();
+
+        // switch to new feed
         currentFeed = feed;
 
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.clearOnPageChangeListeners();
         if (articlePagerAdapter != null) articlePagerAdapter.close();
 
-        articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, feed.getUrl());
+        articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, feed.getUrl(), isHidingReadArticles);
         final ViewPager.OnPageChangeListener pageChangeListener = new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -259,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
         AsyncTask.THREAD_POOL_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
-                Feeds.getInstance().markArticleRead(article);
+                Feeds.getInstance().markArticleGrey(article);
             }
         });
 
@@ -407,6 +416,19 @@ public class MainActivity extends AppCompatActivity {
                 }
                 case R.id.drawer_mark_all_read: {
                     Feeds.getInstance().markAllAsRead(currentFeed);
+                    drawerLayout.closeDrawers();
+                    break;
+                }
+                case R.id.drawer_toggle_unread: {
+                    isHidingReadArticles = !isHidingReadArticles;
+
+                    SharedPreferences.Editor editor = getSharedPreferences(GLOBAL_PREFS, Context.MODE_PRIVATE).edit();
+                    editor.putBoolean(IS_HIDING_READ_ARTICLES_PREF, isHidingReadArticles);
+                    editor.apply();
+
+                    menuItem.setTitle(isHidingReadArticles ? R.string.show_unread_articles : R.string.hide_unread_articles);
+                    reloadPager(currentFeed);
+
                     drawerLayout.closeDrawers();
                     break;
                 }

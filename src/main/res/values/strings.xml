@@ -44,4 +44,8 @@
     <string name="remove_feed_ok">Remove Feed</string>
     <string name="remove_feed_cancel">Cancel</string>
     <string name="remove_feed_complete">%s Removed</string>
+
+    <string name="hide_unread_articles">Hide Read Articles</string>
+    <string name="show_unread_articles">Show Read Articles</string>
+
 </resources>

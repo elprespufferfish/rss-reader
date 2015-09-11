@@ -313,7 +313,7 @@ public class Feeds {
         });
 
         Cursor feedCursor = database.rawQuery(
-                "SELECT " + FeedTable.FEED_NAME + ", " + FeedTable.FEED_URL + ", COUNT(CASE WHEN " + ArticleTable.ARTICLE_IS_READ + "=0 THEN 1 END) " +
+                "SELECT " + FeedTable.FEED_NAME + ", " + FeedTable.FEED_URL + ", COUNT(CASE WHEN " + ArticleTable.ARTICLE_IS_READ + "=" + DatabaseSchema.READ_STATUS.UNREAD + " THEN 1 END) " +
                         "FROM " + FeedTable.TABLE_NAME + " " +
                         "JOIN " + ArticleTable.TABLE_NAME + " " +
                         "ON " + FeedTable.TABLE_NAME + "." + FeedTable._ID + "=" + ArticleTable.ARTICLE_FEED + " " +
@@ -456,26 +456,36 @@ public class Feeds {
         }
     }
 
-    public void markArticleRead(Article article) {
+    public void markArticleGrey(Article article) {
         ContentValues values = new ContentValues();
-        values.put(ArticleTable.ARTICLE_IS_READ, 1);
-        LOGGER.debug("Marking {} as read", article.getId());
+        values.put(ArticleTable.ARTICLE_IS_READ, DatabaseSchema.READ_STATUS.GREY.toString());
+        LOGGER.debug("Marking {} as grey", article.getId());
         database.update(ArticleTable.TABLE_NAME,
                 values,
                 ArticleTable._ID + "=?",
                 new String[] { Integer.toString(article.getId()) });
     }
 
+    public void finalizeGreyArticles() {
+        ContentValues values = new ContentValues();
+        values.put(ArticleTable.ARTICLE_IS_READ, DatabaseSchema.READ_STATUS.READ.toString());
+        LOGGER.debug("Transitioning grey articles to read");
+        database.update(ArticleTable.TABLE_NAME,
+                values,
+                ArticleTable.ARTICLE_IS_READ + "=" + DatabaseSchema.READ_STATUS.GREY,
+                new String[0]);
+    }
+
     public void markAllAsRead(Feed feed) {
         if (feed.getUrl() == null) {
             ContentValues values = new ContentValues();
-            values.put(ArticleTable.ARTICLE_IS_READ, 1);
+            values.put(ArticleTable.ARTICLE_IS_READ, DatabaseSchema.READ_STATUS.READ.toString());
             database.update(ArticleTable.TABLE_NAME,
                     values,
                     "", new String[0]);
         } else {
             database.execSQL("UPDATE " + ArticleTable.TABLE_NAME + " " +
-                    "SET " + ArticleTable.ARTICLE_IS_READ + "=1 " +
+                    "SET " + ArticleTable.ARTICLE_IS_READ + "=" + DatabaseSchema.READ_STATUS.READ + " " +
                     "WHERE " + ArticleTable.ARTICLE_FEED + "= " +
                     "(SELECT " + FeedTable._ID + " FROM " + FeedTable.TABLE_NAME + " WHERE " + FeedTable.FEED_URL + "='" + feed.getUrl() + "')");
         }

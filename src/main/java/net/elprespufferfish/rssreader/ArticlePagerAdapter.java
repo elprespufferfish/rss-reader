@@ -23,13 +23,15 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
      */
     private final String feedUrl;
     private final int count;
+    private final boolean isHidingReadArticles;
 
-    public ArticlePagerAdapter(FragmentManager fm, Context context, String feedUrl) {
+    public ArticlePagerAdapter(FragmentManager fm, Context context, String feedUrl, boolean isHidingReadArticles) {
         super(fm);
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         this.database = databaseHelper.getReadableDatabase();
         this.feedUrl = feedUrl;
         this.count = computeCount();
+        this.isHidingReadArticles = isHidingReadArticles;
     }
 
     private int computeCount() {
@@ -41,6 +43,13 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
                     "ON " + ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_FEED + "=" + FeedTable.TABLE_NAME + "." + FeedTable._ID + " " +
                     "WHERE " + FeedTable.FEED_URL + "=? ";
             selectionArgs = new String[] { feedUrl };
+            if (isHidingReadArticles) {
+                query += "AND " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.READ_STATUS.READ + " ";
+            }
+        } else {
+            if (isHidingReadArticles) {
+                query += "WHERE " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.READ_STATUS.READ + " ";
+            }
         }
 
         Cursor articleCountCursor = database.rawQuery(query, selectionArgs);
@@ -58,6 +67,7 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
         Bundle bundle = new Bundle();
         bundle.putString(ArticleFragment.ARTICLE_FEED_URL_KEY, feedUrl);
         bundle.putInt(ArticleFragment.ARTICLE_INDEX_KEY, i);
+        bundle.putBoolean(ArticleFragment.ARTICLE_IS_HIDING_READ_ARTICLES_KEY, isHidingReadArticles);
         fragment.setArguments(bundle);
         return fragment;
     }

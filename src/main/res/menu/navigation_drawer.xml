@@ -20,4 +20,8 @@
         android:id="@+id/drawer_mark_all_read"
         android:title="@string/drawer_mark_all_read"
         />
+    <item
+        android:id="@+id/drawer_toggle_unread"
+        android:title="@string/hide_unread_articles"
+        />
 </menu>

@@ -22,6 +22,30 @@ public class DatabaseSchema {
         String ARTICLE_IS_READ = "article_is_read";
     }
 
+    /**
+     * Enumeration of states for the {@link ArticleTable#ARTICLE_IS_READ} column
+     */
+    public enum READ_STATUS {
+        /** Article has not been read */
+        UNREAD(0),
+        /** Article has been read, but still in current pager */
+        GREY(1),
+        /** Article has been read and should not be visible in the pager if hiding read articles */
+        READ(2);
+
+        private final int value;
+
+        READ_STATUS(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(value);
+        }
+
+    }
+
     private DatabaseSchema() {
         // prevent instantiations
     }

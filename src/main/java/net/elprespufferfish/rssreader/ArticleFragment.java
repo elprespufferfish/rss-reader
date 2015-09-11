@@ -29,6 +29,7 @@ public class ArticleFragment extends Fragment {
 
     public static final String ARTICLE_FEED_URL_KEY = "article_feed_url";
     public static final String ARTICLE_INDEX_KEY = "article_index";
+    public static final String ARTICLE_IS_HIDING_READ_ARTICLES_KEY = "article_is_hiding_read_articles";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ArticleFragment.class);
     private static final String ARTICLE_KEY = "article";
@@ -57,7 +58,8 @@ public class ArticleFragment extends Fragment {
             onArticleLoad(article);
         } else {
             String feedUrl = getArguments().getString(ARTICLE_FEED_URL_KEY);
-            new FetchArticleTask(feedUrl, articleIndex).execute();
+            boolean isHidingReadArticles = getArguments().getBoolean(ARTICLE_IS_HIDING_READ_ARTICLES_KEY);
+            new FetchArticleTask(feedUrl, articleIndex, isHidingReadArticles).execute();
 
         }
         return view;
@@ -139,12 +141,14 @@ public class ArticleFragment extends Fragment {
         private final SQLiteDatabase database;
         private final String feedUrl;
         private final int i;
+        private final boolean isHidingReadArticles;
 
-        public FetchArticleTask(String feedUrl, int i) {
+        public FetchArticleTask(String feedUrl, int i, boolean isHidingReadArticles) {
             DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
             this.database = databaseHelper.getReadableDatabase();
             this.feedUrl = feedUrl;
             this.i = i;
+            this.isHidingReadArticles = isHidingReadArticles;
         }
 
         @Override
@@ -165,6 +169,14 @@ public class ArticleFragment extends Fragment {
             if (feedUrl != null) {
                 query += "WHERE " + DatabaseSchema.FeedTable.FEED_URL + "=? ";
                 selectionArgs = new String[] { feedUrl };
+
+                if (isHidingReadArticles) {
+                    query += "AND " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.READ_STATUS.READ + " ";
+                }
+            } else {
+                if (isHidingReadArticles) {
+                    query += "WHERE " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.READ_STATUS.READ + " ";
+                }
             }
             query += "ORDER BY " + DatabaseSchema.ArticleTable.ARTICLE_PUBLICATION_DATE + " DESC " +
                     "LIMIT 1 " +
