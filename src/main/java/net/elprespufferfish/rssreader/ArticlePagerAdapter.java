@@ -30,8 +30,8 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         this.database = databaseHelper.getReadableDatabase();
         this.feedUrl = feedUrl;
-        this.count = computeCount();
         this.isHidingReadArticles = isHidingReadArticles;
+        this.count = computeCount();
     }
 
     private int computeCount() {
