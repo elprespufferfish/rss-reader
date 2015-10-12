@@ -5,4 +5,5 @@
 /.settings
 /*.iml
 /build
+/captures
 /local.properties
