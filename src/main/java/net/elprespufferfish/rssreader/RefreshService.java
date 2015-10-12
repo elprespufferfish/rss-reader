@@ -1,13 +1,16 @@
 package net.elprespufferfish.rssreader;
 
+import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -97,7 +100,30 @@ public class RefreshService extends IntentService {
 
     private boolean isOnWifi() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return isOnWifiLollipop(connectivityManager);
+        } else {
+            return isOnWifiPreLollipop(connectivityManager);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private boolean isOnWifiLollipop(ConnectivityManager connectivityManager) {
+        Network[] networks = connectivityManager.getAllNetworks();
+        for (Network network : networks) {
+            NetworkInfo networkInfo = connectivityManager.getNetworkInfo(network);
+            if (networkInfo.getType() != ConnectivityManager.TYPE_WIFI) {
+                continue;
+            }
+            return NetworkInfo.State.CONNECTED.equals(networkInfo.getState());
+        }
+        return false;
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean isOnWifiPreLollipop(ConnectivityManager connectivityManager) {
         NetworkInfo networkInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         return networkInfo.isConnected();
     }
+
 }
