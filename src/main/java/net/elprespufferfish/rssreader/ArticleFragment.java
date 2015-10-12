@@ -17,9 +17,9 @@ import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.squareup.picasso.Picasso;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -113,10 +113,8 @@ public class ArticleFragment extends Fragment {
             imageView.setVisibility(ImageView.VISIBLE);
             webView.setVisibility(WebView.GONE);
 
-            Picasso.with(this.getActivity())
+            Glide.with(this)
                     .load(imageUrl)
-                    .fit()
-                    .centerInside()
                     .into(imageView);
         } else {
             LOGGER.debug("Displaying WebView");
