@@ -61,14 +61,16 @@ public class RssReaderApplication extends Application {
     public void scheduleRefresh() {
         Calendar startTime = Calendar.getInstance();
         startTime.setTimeInMillis(System.currentTimeMillis());
+        startTime.add(Calendar.DATE, 1);
         startTime.set(Calendar.HOUR_OF_DAY, 8);
+        startTime.set(Calendar.MINUTE, 0);
 
         Intent refreshIntent = new Intent(this, RefreshService.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, refreshIntent, 0);
+        PendingIntent pendingIntent = PendingIntent.getService(this, 0, refreshIntent, 0);
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmManager.setInexactRepeating(
-                AlarmManager.RTC_WAKEUP,
+                AlarmManager.RTC,
                 startTime.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY,
                 pendingIntent);
