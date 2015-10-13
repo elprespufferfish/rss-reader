@@ -124,6 +124,10 @@ public class Feeds {
         try {
             connection = httpUrlConnectionFactory.create(new URL(feedAddress));
 
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                throw new RuntimeException("Could not fetch " + feedAddress);
+            }
+
             String contentType = parseContentType(connection.getHeaderField(HttpHeaders.CONTENT_TYPE));
             if (isHtml(contentType)) {
                 return autoDiscoverFeeds(connection, feedAddress);
