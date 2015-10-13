@@ -48,4 +48,6 @@
     <string name="hide_unread_articles">Hide Read Articles</string>
     <string name="show_unread_articles">Show Read Articles</string>
 
+    <string name="no_articles">No new articles.  Do you need to refresh?</string>
+
 </resources>

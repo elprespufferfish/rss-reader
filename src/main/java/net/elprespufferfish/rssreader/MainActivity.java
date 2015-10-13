@@ -152,6 +152,9 @@ public class MainActivity extends AppCompatActivity {
 
         MenuItem shareItem = menu.findItem(R.id.action_share);
         MenuItemCompat.setActionProvider(shareItem, shareActionProvider);
+        if (this.articlePagerAdapter.getCount() == 0) {
+            shareItem.setVisible(false);
+        }
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -257,6 +260,15 @@ public class MainActivity extends AppCompatActivity {
                 pageChangeListener.onPageSelected(viewPager.getCurrentItem());
             }
         });
+
+        if (articlePagerAdapter.getCount() == 0) {
+            findViewById(R.id.no_articles).setVisibility(View.VISIBLE);
+        } else {
+            findViewById(R.id.no_articles).setVisibility(View.INVISIBLE);
+        }
+
+        // rebuild menu to enable/disable the share button
+        invalidateOptionsMenu();
     }
 
     @Subscribe
