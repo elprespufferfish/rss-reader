@@ -38,12 +38,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
     private static final String GLOBAL_PREFS = "global";
     private static final String IS_HIDING_READ_ARTICLES_PREF = "isHidingReadArticles";
+    private static final Pattern URL_PATTERN = Pattern.compile("^https?://.*");
 
     private BroadcastReceiver refreshCompletionReceiver = new BroadcastReceiver() {
         @Override
@@ -322,6 +324,12 @@ public class MainActivity extends AppCompatActivity {
                                     dialog.dismiss();;
                                     EditText feedUrlInput = (EditText) addFeedDialogView.findViewById(R.id.feed_url);
                                     String feedUrl = feedUrlInput.getText().toString();
+
+                                    // default protocol to https
+                                    if (!URL_PATTERN.matcher(feedUrl).matches() ) {
+                                        feedUrl = "https://" + feedUrl;
+                                    }
+
                                     new AddFeedTask(MainActivity.this).execute(feedUrl);
                                 }
                             })
