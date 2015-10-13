@@ -3,7 +3,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         tools:ignore="MissingPrefix">
     <item android:id="@+id/action_share"
-        android:icon="@drawable/ic_menu_share"
+        android:icon="@drawable/ic_share_black_24dp"
         android:title="@string/action_share"
         yourapp:showAsAction="ifRoom"
         yourapp:actionProviderClass="android.support.v7.widget.ShareActionProvider"/>

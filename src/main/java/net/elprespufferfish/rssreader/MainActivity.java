@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(new NavigationClickListener());
         isHidingReadArticles = getSharedPreferences(GLOBAL_PREFS, Context.MODE_PRIVATE).getBoolean(IS_HIDING_READ_ARTICLES_PREF, false);
         navigationView.getMenu().findItem(R.id.drawer_toggle_unread).setTitle(isHidingReadArticles ? R.string.show_unread_articles : R.string.hide_unread_articles);
+        navigationView.getMenu().findItem(R.id.drawer_toggle_unread).setIcon(isHidingReadArticles ? R.drawable.ic_visibility_black_24dp : R.drawable.ic_visibility_off_black_24dp);
 
         // tie drawer to action bar
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -427,6 +428,7 @@ public class MainActivity extends AppCompatActivity {
                     editor.apply();
 
                     menuItem.setTitle(isHidingReadArticles ? R.string.show_unread_articles : R.string.hide_unread_articles);
+                    menuItem.setIcon(isHidingReadArticles ? R.drawable.ic_visibility_black_24dp : R.drawable.ic_visibility_off_black_24dp);
                     reloadPager(currentFeed);
 
                     drawerLayout.closeDrawers();

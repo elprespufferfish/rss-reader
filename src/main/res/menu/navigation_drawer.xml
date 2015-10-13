@@ -1,27 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/drawer_refresh"
-        android:title="@string/drawer_refresh"
-        />
-    <item
-        android:id="@+id/drawer_add_feed"
-        android:title="@string/drawer_add_feed"
-        />
-    <item
-        android:id="@+id/drawer_view_feed"
-        android:title="@string/drawer_view_feed"
-        />
-    <item
-        android:id="@+id/drawer_remove_feed"
-        android:title="@string/drawer_remove_feed"
-        />
-    <item
-        android:id="@+id/drawer_mark_all_read"
-        android:title="@string/drawer_mark_all_read"
-        />
-    <item
-        android:id="@+id/drawer_toggle_unread"
-        android:title="@string/hide_unread_articles"
-        />
+
+    <group android:id="@+id/common_group">
+
+        <item
+            android:icon="@drawable/ic_list_black_24dp"
+            android:id="@+id/drawer_view_feed"
+            android:title="@string/drawer_view_feed"
+            />
+
+        <item
+            android:icon="@drawable/ic_refresh_black_24dp"
+            android:id="@+id/drawer_refresh"
+            android:title="@string/drawer_refresh"
+            />
+
+        <item
+            android:icon="@drawable/ic_done_all_black_24dp"
+            android:id="@+id/drawer_mark_all_read"
+            android:title="@string/drawer_mark_all_read"
+            />
+
+        <item
+            android:id="@+id/drawer_toggle_unread"
+            android:title="@string/hide_unread_articles"
+            />
+
+    </group>
+
+    <group android:id="@+id/uncommon_group">
+
+        <item
+            android:icon="@drawable/ic_add_black_24dp"
+            android:id="@+id/drawer_add_feed"
+            android:title="@string/drawer_add_feed"
+            />
+        <item
+            android:icon="@drawable/ic_remove_black_24dp"
+            android:id="@+id/drawer_remove_feed"
+            android:title="@string/drawer_remove_feed"
+            />
+
+    </group>
+
 </menu>
