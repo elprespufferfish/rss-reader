@@ -6,7 +6,7 @@ import android.os.Parcelable;
 import org.joda.time.DateTime;
 
 /**
- * Represents a single item to be read
+ * Represents a single item to be read.
  *
  * @author elprespufferfish
  */
@@ -105,8 +105,13 @@ public class Article implements Parcelable {
         this.guid = guid;
     }
 
+    /**
+     * @throws IllegalStateException if article was not loaded from the database.
+     */
     public int getId() {
-        if (id == -1) throw new IllegalStateException("Article was not populated from database");
+        if (id == -1) {
+            throw new IllegalStateException("Article was not populated from database");
+        }
         return id;
     }
 

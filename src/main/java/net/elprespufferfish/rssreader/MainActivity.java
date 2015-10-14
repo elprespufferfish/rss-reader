@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Don't finish() when we hit back
+     * Don't finish() when we hit back.
      */
     @Override
     public void onBackPressed() {
@@ -234,7 +234,9 @@ public class MainActivity extends AppCompatActivity {
 
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.clearOnPageChangeListeners();
-        if (articlePagerAdapter != null) articlePagerAdapter.close();
+        if (articlePagerAdapter != null) {
+            articlePagerAdapter.close();
+        }
 
         articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, feed.getUrl(), isHidingReadArticles);
         final ViewPager.OnPageChangeListener pageChangeListener = new ViewPager.OnPageChangeListener() {
@@ -274,13 +276,16 @@ public class MainActivity extends AppCompatActivity {
         invalidateOptionsMenu();
     }
 
+    /**
+     * Handle a new Article being displayed.
+     */
     @Subscribe
-    public void onArticleLoaded(ArticleLoadedEvent e) {
-        if (e.getArticleIndex() != viewPager.getCurrentItem()) {
+    public void onArticleLoaded(ArticleLoadedEvent articleLoadedEvent) {
+        if (articleLoadedEvent.getArticleIndex() != viewPager.getCurrentItem()) {
             return;
         }
 
-        final Article article = e.getArticle();
+        final Article article = articleLoadedEvent.getArticle();
         AsyncTask.THREAD_POOL_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
@@ -343,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.drawer_view_feed: {
-                    Map<Feed, Integer> feeds = Feeds.getInstance().getFeedsWithContent();
+                    Map<Feed, Integer> feeds = Feeds.getInstance().getUnreadArticleCounts();
 
                     final Map<Feed, Integer> allFeeds = new LinkedHashMap<>();
                     int totalUnread = 0;
@@ -354,16 +359,16 @@ public class MainActivity extends AppCompatActivity {
                     allFeeds.putAll(feeds);
 
                     int currentFeedIndex = 0;
-                    int i = 0;
+                    int index = 0;
                     List<String> feedNames = new ArrayList<>(allFeeds.size());
                     for (Map.Entry<Feed, Integer> entry : allFeeds.entrySet()) {
                         Feed feed = entry.getKey();
                         feedNames.add(feed.getName() + " (" + entry.getValue() + ")");
 
                         if (feed.equals(currentFeed)) {
-                            currentFeedIndex = i;
+                            currentFeedIndex = index;
                         }
-                        i++;
+                        index++;
                     }
 
                     AlertDialog viewFeedDialog = new AlertDialog.Builder(MainActivity.this)
@@ -375,14 +380,16 @@ public class MainActivity extends AppCompatActivity {
                                     int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
 
                                     Feed selectedFeed = null;
-                                    int i = 0;
+                                    int index = 0;
                                     for (Feed feed : allFeeds.keySet()) {
-                                        if (i++ == selectedPosition) {
+                                        if (index++ == selectedPosition) {
                                             selectedFeed = feed;
                                             break;
                                         }
                                     }
-                                    if (selectedFeed == null) throw new AssertionError("Could not determine selected feed at position " + selectedPosition + " from " + allFeeds);
+                                    if (selectedFeed == null) {
+                                        throw new AssertionError("Could not determine selected feed at position " + selectedPosition + " from " + allFeeds);
+                                    }
 
                                     drawerLayout.closeDrawers();
                                     reloadPager(selectedFeed);
@@ -393,10 +400,12 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.drawer_remove_feed: {
-                    final List<Feed> feeds = Feeds.getInstance().getFeeds();
+                    final List<Feed> feeds = Feeds.getInstance().getAllFeeds();
 
                     List<String> feedNames = new ArrayList<>(feeds.size());
-                    for (Feed feed : feeds) feedNames.add(feed.getName());
+                    for (Feed feed : feeds) {
+                        feedNames.add(feed.getName());
+                    }
                     AlertDialog viewFeedDialog = new AlertDialog.Builder(MainActivity.this)
                             .setTitle(R.string.remove_feed_title)
                             .setSingleChoiceItems(feedNames.toArray(new String[0]), -1, new DialogInterface.OnClickListener() {

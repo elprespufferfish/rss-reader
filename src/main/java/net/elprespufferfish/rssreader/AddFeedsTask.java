@@ -5,7 +5,7 @@ import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 
 /**
- * Add multiple feeds in the background
+ * Add multiple feeds in the background.
  */
 public class AddFeedsTask extends AsyncTask<Feed, Void, Void> {
 
@@ -18,8 +18,9 @@ public class AddFeedsTask extends AsyncTask<Feed, Void, Void> {
 
     @Override
     protected Void doInBackground(Feed... feeds) {
-        if (feeds.length == 0)
+        if (feeds.length == 0) {
             throw new IllegalArgumentException("Must be called with Feeds to add");
+        }
 
         for (Feed feed : feeds) {
             try {
@@ -36,7 +37,7 @@ public class AddFeedsTask extends AsyncTask<Feed, Void, Void> {
     }
 
     @Override
-    protected void onPostExecute(Void v) {
+    protected void onPostExecute(Void unused) {
         if (exception != null) {
             Snackbar.make(
                     activity.findViewById(R.id.pager),

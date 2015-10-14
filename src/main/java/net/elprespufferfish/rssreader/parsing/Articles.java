@@ -12,7 +12,7 @@ public class Articles {
     private static final Logger LOGGER = LoggerFactory.getLogger(Articles.class);
 
     /**
-     * @return opengraph content at provided content if available, or <code>null</code>
+     * @return opengraph content at provided content if available, or <code>null</code>.
      */
     public static String getOpenGraphContent(String articleAddress, String type) {
         try {

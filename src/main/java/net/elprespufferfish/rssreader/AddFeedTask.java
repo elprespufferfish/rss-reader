@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Handle searching for a new feed to add
+ * Handle searching for a new feed to add.
  */
 class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
 

@@ -56,6 +56,7 @@ public class RssParser extends BaseParser implements Parser {
                     if ("channel".equals(xmlPullParser.getName())) {
                         isInChannel = false;
                     }
+                    break;
                 }
                 default: {
                     // no-op

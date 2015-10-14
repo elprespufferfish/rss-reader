@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Parses article feeds
+ * Parses article feeds.
  */
 public interface Parser {
 
@@ -21,14 +21,6 @@ public interface Parser {
 
     /**
      * Parse {@link Article} objects from the provided XML stream.
-     *
-     * @param feedAddress
-     * @param xmlPullParser
-     * @param maxAgeDays
-     * @param latestGuid
-     * @return
-     * @throws IOException
-     * @throws XmlPullParserException
      */
     List<Article> parseArticles(String feedAddress, XmlPullParser xmlPullParser, int maxAgeDays, String latestGuid) throws IOException, XmlPullParserException;
 

@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Base class to implement common Article parsing logic
+ * Base class to implement common Article parsing logic.
  */
 public abstract class BaseParser implements Parser {
 
@@ -59,10 +59,13 @@ public abstract class BaseParser implements Parser {
 
 
     /**
+     * Parse the next Article in the feed.
+     *
+     * <p>Should be called immediately after reading an open article tag.
+     * Will not advance parser beyond closing article tag.
+     *
      * @return parsed {@link Article} from XML stream.
-     * Should be called immediately after reading an open article tag
-     * Will not advance parser beyond closing article tag
      */
-    abstract protected Article parseArticle(String feed, XmlPullParser xmlPullParser) throws XmlPullParserException, IOException;
+    protected abstract Article parseArticle(String feed, XmlPullParser xmlPullParser) throws XmlPullParserException, IOException;
 
 }

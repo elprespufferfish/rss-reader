@@ -22,11 +22,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + DatabaseSchema.FeedTable.TABLE_NAME + " (" +
-                FeedTable._ID + " INTEGER PRIMARY KEY," +
-                FeedTable.FEED_NAME + " TEXT NOT NULL," +
-                FeedTable.FEED_URL + " TEXT NOT NULL UNIQUE" +
-                ")");
+        db.execSQL("CREATE TABLE " + DatabaseSchema.FeedTable.TABLE_NAME + " ("
+                + FeedTable._ID + " INTEGER PRIMARY KEY,"
+                + FeedTable.FEED_NAME + " TEXT NOT NULL,"
+                + FeedTable.FEED_URL + " TEXT NOT NULL UNIQUE"
+                + ")");
 
         Map<String, String> defaultFeeds = new HashMap<String, String>();
         defaultFeeds.put("/Film", "http://feeds2.feedburner.com/slashfilm");
@@ -46,18 +46,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.insert(FeedTable.TABLE_NAME, null, values);
         }
 
-        db.execSQL("CREATE TABLE " + ArticleTable.TABLE_NAME + " (" +
-                ArticleTable._ID + " INTEGER PRIMARY KEY," +
-                ArticleTable.ARTICLE_FEED + " INTEGER NOT NULL," +
-                ArticleTable.ARTICLE_NAME + " TEXT NOT NULL," +
-                ArticleTable.ARTICLE_URL + " TEXT NOT NULL," +
-                ArticleTable.ARTICLE_PUBLICATION_DATE + " INTEGER NOT NULL," +
-                ArticleTable.ARTICLE_DESCRIPTION + " TEXT NOT NULL," +
-                ArticleTable.ARTICLE_IMAGE_URL + " TEXT," + // may be null if no image is present
-                ArticleTable.ARTICLE_GUID + " TEXT NOT NULL," +
-                ArticleTable.ARTICLE_IS_READ + " INTEGER NOT NULL," +
-                "FOREIGN KEY(" + ArticleTable.ARTICLE_FEED + ") REFERENCES " + FeedTable.TABLE_NAME + "(" + FeedTable._ID + ")" +
-                ")");
+        db.execSQL("CREATE TABLE " + ArticleTable.TABLE_NAME + " ("
+                + ArticleTable._ID + " INTEGER PRIMARY KEY,"
+                + ArticleTable.ARTICLE_FEED + " INTEGER NOT NULL,"
+                + ArticleTable.ARTICLE_NAME + " TEXT NOT NULL,"
+                + ArticleTable.ARTICLE_URL + " TEXT NOT NULL,"
+                + ArticleTable.ARTICLE_PUBLICATION_DATE + " INTEGER NOT NULL,"
+                + ArticleTable.ARTICLE_DESCRIPTION + " TEXT NOT NULL,"
+                + ArticleTable.ARTICLE_IMAGE_URL + " TEXT," // may be null if no image is present
+                + ArticleTable.ARTICLE_GUID + " TEXT NOT NULL,"
+                + ArticleTable.ARTICLE_IS_READ + " INTEGER NOT NULL,"
+                + "FOREIGN KEY(" + ArticleTable.ARTICLE_FEED + ") REFERENCES " + FeedTable.TABLE_NAME + "(" + FeedTable._ID + ")"
+                + ")");
     }
 
     @Override

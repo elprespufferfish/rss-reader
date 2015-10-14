@@ -54,12 +54,15 @@ public class Feeds {
     private static final int MAX_AGE_DAYS = 14; // do not store articles older than this
 
     private static final Set<String> HTML_CONTENT_TYPES;
+
     static {
         Set<String> tmp = new HashSet<>();
         tmp.add("text/html");
         HTML_CONTENT_TYPES = ImmutableSet.copyOf(tmp);
     }
+
     private static final Set<String> FEED_CONTENT_TYPES;
+
     static {
         Set<String> tmp = new HashSet<>();
         tmp.add("application/rss+xml");
@@ -70,14 +73,27 @@ public class Feeds {
 
     private static volatile Feeds INSTANCE;
 
+    /**
+     * Initialize the singleton.
+     *
+     * @throws IllegalStateException if initialize has already been called.
+     */
     public static Feeds initialize(Context context) {
-        if (INSTANCE != null) throw new IllegalStateException("initialize() called twice");
+        if (INSTANCE != null) {
+            throw new IllegalStateException("initialize() called twice");
+        }
         INSTANCE = new Feeds(context);
         return INSTANCE;
     }
 
+    /**
+     * @return initialized singleton.
+     * @throws IllegalStateException if initialize has not been called.
+     */
     public static Feeds getInstance() {
-        if (INSTANCE == null) throw new IllegalStateException("getInstance called before initialize()");
+        if (INSTANCE == null) {
+            throw new IllegalStateException("getInstance called before initialize()");
+        }
         return INSTANCE;
     }
 
@@ -100,8 +116,8 @@ public class Feeds {
     }
 
     /**
-     * @return Feed present at specified address, or List of autodiscovered feeds
-     * @throws RuntimeException if the title could not be determined
+     * @return Feed present at specified address, or List of autodiscovered feeds.
+     * @throws RuntimeException if the title could not be determined.
      */
     public List<Feed> getFeeds(String feedAddress) {
         HttpURLConnection connection = null;
@@ -119,7 +135,9 @@ public class Feeds {
         } catch (Exception e) {
             throw Throwables.propagate(e);
         } finally {
-            if (connection != null) connection.disconnect();
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 
@@ -176,7 +194,9 @@ public class Feeds {
         } catch (Exception e) {
             throw Throwables.propagate(e);
         } finally {
-            if (connection != null) connection.disconnect();
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 
@@ -198,11 +218,13 @@ public class Feeds {
     }
 
     /**
-     * Add a new feed to the database
-     * @throws FeedAlreadyAddedException if the feed has already been added
+     * Add a new feed to the database.
+     * @throws FeedAlreadyAddedException if the feed has already been added.
      */
     public void addFeed(Feed feed) throws FeedAlreadyAddedException {
-        if (isFeedPresent(feed.getUrl())) throw new FeedAlreadyAddedException();
+        if (isFeedPresent(feed.getUrl())) {
+            throw new FeedAlreadyAddedException();
+        }
 
         ContentValues values = new ContentValues();
         values.put(FeedTable.FEED_NAME, feed.getName());
@@ -211,7 +233,7 @@ public class Feeds {
     }
 
     /**
-     * @return true if the provided feedUrl is already in the database
+     * @return true if the provided feedUrl is already in the database.
      */
     private boolean isFeedPresent(String feedUrl) {
         Cursor feedExistenceCursor = database.rawQuery(
@@ -227,8 +249,8 @@ public class Feeds {
     }
 
     /**
-     * Trigger a refresh of all feeds
-     * @return true iff a refresh was started
+     * Trigger a refresh of all feeds.
+     * @return true iff a refresh was started.
      */
     public boolean refresh() {
         if (!isRefreshInProgress.compareAndSet(false, true)) {
@@ -239,7 +261,7 @@ public class Feeds {
         long startTime = System.nanoTime();
 
         Set<AsyncTask<String, Void, Void>> tasks = new HashSet<AsyncTask<String, Void, Void>>();
-        for (final Feed feed : getFeeds()) {
+        for (final Feed feed : getAllFeeds()) {
             AsyncTask<String, Void, Void> articleFetchingTask = new AsyncTask<String, Void, Void>() {
                 @Override
                 protected Void doInBackground(String... feeds) {
@@ -251,7 +273,8 @@ public class Feeds {
                     }
                     return null;
                 }
-            }.executeOnExecutor(executor, feed.getUrl());
+            };
+            articleFetchingTask.executeOnExecutor(executor, feed.getUrl());
             tasks.add(articleFetchingTask);
         }
 
@@ -281,7 +304,10 @@ public class Feeds {
         LOGGER.info("Vacuum complete in " + vacuumDuration + "ms");
     }
 
-    public List<Feed> getFeeds() {
+    /**
+     * @return List of all added Feeds.
+     */
+    public List<Feed> getAllFeeds() {
         Cursor feedCursor = database.query(
                 FeedTable.TABLE_NAME,
                 new String[]{FeedTable.FEED_NAME, FeedTable.FEED_URL},
@@ -304,7 +330,10 @@ public class Feeds {
         }
     }
 
-    public Map<Feed, Integer> getFeedsWithContent() {
+    /**
+     * @return Map of all added Feeds to the number of unread articles for that feed.
+     */
+    public Map<Feed, Integer> getUnreadArticleCounts() {
         Map<Feed, Integer> feeds = new TreeMap<>(new Comparator<Feed>() {
             @Override
             public int compare(Feed lhs, Feed rhs) {
@@ -313,13 +342,13 @@ public class Feeds {
         });
 
         Cursor feedCursor = database.rawQuery(
-                "SELECT " + FeedTable.FEED_NAME + ", " + FeedTable.FEED_URL + ", COUNT(CASE WHEN " + ArticleTable.ARTICLE_IS_READ + "=" + DatabaseSchema.READ_STATUS.UNREAD + " THEN 1 END) " +
-                        "FROM " + FeedTable.TABLE_NAME + " " +
-                        "LEFT JOIN " + ArticleTable.TABLE_NAME + " " +
-                        "ON " + FeedTable.TABLE_NAME + "." + FeedTable._ID + "=" + ArticleTable.ARTICLE_FEED + " " +
-                        "GROUP BY " + FeedTable.TABLE_NAME + "." + FeedTable._ID + " " +
-                        "ORDER BY " + FeedTable.FEED_NAME
-                , new String[0]);
+                "SELECT " + FeedTable.FEED_NAME + ", " + FeedTable.FEED_URL + ", COUNT(CASE WHEN " + ArticleTable.ARTICLE_IS_READ + "=" + DatabaseSchema.ReadStatus.UNREAD + " THEN 1 END) "
+                        + "FROM " + FeedTable.TABLE_NAME + " "
+                        + "LEFT JOIN " + ArticleTable.TABLE_NAME + " "
+                        + "ON " + FeedTable.TABLE_NAME + "." + FeedTable._ID + "=" + ArticleTable.ARTICLE_FEED + " "
+                        + "GROUP BY " + FeedTable.TABLE_NAME + "." + FeedTable._ID + " "
+                        + "ORDER BY " + FeedTable.FEED_NAME,
+                new String[0]);
         try {
             feedCursor.moveToFirst();
 
@@ -335,14 +364,17 @@ public class Feeds {
         }
     }
 
+    /**
+     * Remove provided Feed and all associated Articles.
+     */
     public void removeFeed(Feed feed) {
         database.beginTransaction();
         try {
             database.rawQuery(
-                    "DELETE FROM " + ArticleTable.TABLE_NAME + " " +
-                            "WHERE " + ArticleTable.ARTICLE_FEED + "=" + "(SELECT " + FeedTable._ID + " " +
-                            "FROM " + FeedTable.TABLE_NAME + " " +
-                            "WHERE " + FeedTable.FEED_URL + "=?)",
+                    "DELETE FROM " + ArticleTable.TABLE_NAME + " "
+                            + "WHERE " + ArticleTable.ARTICLE_FEED + "=" + "(SELECT " + FeedTable._ID + " "
+                            + "FROM " + FeedTable.TABLE_NAME + " "
+                            + "WHERE " + FeedTable.FEED_URL + "=?)",
                     new String[0]);
             database.delete(
                     FeedTable.TABLE_NAME,
@@ -353,6 +385,7 @@ public class Feeds {
             database.endTransaction();
         }
     }
+
     private void parseFeed(String feedAddress) throws IOException, XmlPullParserException {
         LOGGER.info("Attempting to parse " + feedAddress);
         long startTime = System.nanoTime();
@@ -361,17 +394,17 @@ public class Feeds {
         String latestGuid = getLatestGuid(feedId);
         List<Article> articles = parseArticles(feedAddress, latestGuid);
 
-        String insertSql = "INSERT INTO " + ArticleTable.TABLE_NAME +
-                "(" +
-                ArticleTable.ARTICLE_FEED + "," +
-                ArticleTable.ARTICLE_NAME + "," +
-                ArticleTable.ARTICLE_URL + "," +
-                ArticleTable.ARTICLE_PUBLICATION_DATE + "," +
-                ArticleTable.ARTICLE_DESCRIPTION + "," +
-                ArticleTable.ARTICLE_IMAGE_URL + "," +
-                ArticleTable.ARTICLE_GUID + "," +
-                ArticleTable.ARTICLE_IS_READ +
-                ") VALUES (?,?,?,?,?,?,?, ?);";
+        String insertSql = "INSERT INTO " + ArticleTable.TABLE_NAME
+                + "("
+                + ArticleTable.ARTICLE_FEED + ","
+                + ArticleTable.ARTICLE_NAME + ","
+                + ArticleTable.ARTICLE_URL + ","
+                + ArticleTable.ARTICLE_PUBLICATION_DATE + ","
+                + ArticleTable.ARTICLE_DESCRIPTION + ","
+                + ArticleTable.ARTICLE_IMAGE_URL + ","
+                + ArticleTable.ARTICLE_GUID + ","
+                + ArticleTable.ARTICLE_IS_READ
+                + ") VALUES (?,?,?,?,?,?,?, ?);";
         SQLiteStatement statement = database.compileStatement(insertSql);
         database.beginTransactionNonExclusive();
         try {
@@ -452,13 +485,18 @@ public class Feeds {
             return articleParser.parseArticles(feedAddress, xmlPullParser, MAX_AGE_DAYS, latestGuid);
         } finally {
             Closeables.closeQuietly(feedInput);
-            if (connection != null) connection.disconnect();
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 
+    /**
+     * Mark article as having been read, but still visible in the current pager.
+     */
     public void markArticleGrey(Article article) {
         ContentValues values = new ContentValues();
-        values.put(ArticleTable.ARTICLE_IS_READ, DatabaseSchema.READ_STATUS.GREY.toString());
+        values.put(ArticleTable.ARTICLE_IS_READ, DatabaseSchema.ReadStatus.GREY.toString());
         LOGGER.debug("Marking {} as grey", article.getId());
         database.update(ArticleTable.TABLE_NAME,
                 values,
@@ -466,28 +504,34 @@ public class Feeds {
                 new String[] { Integer.toString(article.getId()) });
     }
 
+    /**
+     * Mark all grey articles as read so that they will not show up.
+     */
     public void finalizeGreyArticles() {
         ContentValues values = new ContentValues();
-        values.put(ArticleTable.ARTICLE_IS_READ, DatabaseSchema.READ_STATUS.READ.toString());
+        values.put(ArticleTable.ARTICLE_IS_READ, DatabaseSchema.ReadStatus.READ.toString());
         LOGGER.debug("Transitioning grey articles to read");
         database.update(ArticleTable.TABLE_NAME,
                 values,
-                ArticleTable.ARTICLE_IS_READ + "=" + DatabaseSchema.READ_STATUS.GREY,
+                ArticleTable.ARTICLE_IS_READ + "=" + DatabaseSchema.ReadStatus.GREY,
                 new String[0]);
     }
 
+    /**
+     * Mark all articles for the provided Feed as read.
+     */
     public void markAllAsRead(Feed feed) {
         if (feed.getUrl() == null) {
             ContentValues values = new ContentValues();
-            values.put(ArticleTable.ARTICLE_IS_READ, DatabaseSchema.READ_STATUS.READ.toString());
+            values.put(ArticleTable.ARTICLE_IS_READ, DatabaseSchema.ReadStatus.READ.toString());
             database.update(ArticleTable.TABLE_NAME,
                     values,
                     "", new String[0]);
         } else {
-            database.execSQL("UPDATE " + ArticleTable.TABLE_NAME + " " +
-                    "SET " + ArticleTable.ARTICLE_IS_READ + "=" + DatabaseSchema.READ_STATUS.READ + " " +
-                    "WHERE " + ArticleTable.ARTICLE_FEED + "= " +
-                    "(SELECT " + FeedTable._ID + " FROM " + FeedTable.TABLE_NAME + " WHERE " + FeedTable.FEED_URL + "='" + feed.getUrl() + "')");
+            database.execSQL("UPDATE " + ArticleTable.TABLE_NAME + " "
+                    + "SET " + ArticleTable.ARTICLE_IS_READ + "=" + DatabaseSchema.ReadStatus.READ + " "
+                    + "WHERE " + ArticleTable.ARTICLE_FEED + "= "
+                    + "(SELECT " + FeedTable._ID + " FROM " + FeedTable.TABLE_NAME + " WHERE " + FeedTable.FEED_URL + "='" + feed.getUrl() + "')");
         }
     }
 

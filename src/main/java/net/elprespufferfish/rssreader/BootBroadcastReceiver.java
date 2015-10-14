@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * Ensure refreshes are scheduled after a device reboot
+ * Ensure refreshes are scheduled after a device reboot.
  */
 public class BootBroadcastReceiver extends BroadcastReceiver {
 

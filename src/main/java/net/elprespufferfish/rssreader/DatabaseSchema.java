@@ -23,19 +23,19 @@ public class DatabaseSchema {
     }
 
     /**
-     * Enumeration of states for the {@link ArticleTable#ARTICLE_IS_READ} column
+     * Enumeration of states for the {@link ArticleTable#ARTICLE_IS_READ} column.
      */
-    public enum READ_STATUS {
-        /** Article has not been read */
+    public enum ReadStatus {
+        /** Article has not been read. */
         UNREAD(0),
-        /** Article has been read, but still in current pager */
+        /** Article has been read, but still in current pager. */
         GREY(1),
-        /** Article has been read and should not be visible in the pager if hiding read articles */
+        /** Article has been read and should not be visible in the pager if hiding read articles. */
         READ(2);
 
         private final int value;
 
-        READ_STATUS(int value) {
+        ReadStatus(int value) {
             this.value = value;
         }
 

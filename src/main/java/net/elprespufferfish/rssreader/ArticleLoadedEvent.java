@@ -1,7 +1,7 @@
 package net.elprespufferfish.rssreader;
 
 /**
- * Notify UI that a new article is being displayed
+ * Notify UI that a new article is being displayed.
  */
 public class ArticleLoadedEvent {
 

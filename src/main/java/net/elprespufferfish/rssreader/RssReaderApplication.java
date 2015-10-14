@@ -55,6 +55,9 @@ public class RssReaderApplication extends Application {
         return eventBus;
     }
 
+    /**
+     * (Re)schedule an automated refresh of all feeds.
+     */
     public void scheduleRefresh() {
         Calendar startTime = Calendar.getInstance();
         startTime.setTimeInMillis(System.currentTimeMillis());

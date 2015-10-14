@@ -40,6 +40,7 @@ public class AtomParser extends BaseParser implements Parser {
                                 .withUrl(feedAddress)
                                 .build();
                     }
+                    break;
                 }
                 default: {
                     // no-op

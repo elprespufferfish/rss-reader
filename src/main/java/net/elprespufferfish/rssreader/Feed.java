@@ -7,7 +7,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.hash.HashCode;
 
 /**
- * An RSS feed
+ * An RSS or Atom feed.
  */
 public class Feed {
 
@@ -16,18 +16,29 @@ public class Feed {
         private String name;
         private String url;
 
+        /**
+         * Sets a non-null name for the Feed being built.
+         * @return a Builder for chaining.
+         */
         public Builder withName(String name) {
             Preconditions.checkNotNull(name);
             this.name = name;
             return this;
         }
 
+        /**
+         * Sets a non-null URL for the Feed being built.
+         * @return a Builder for chaining.
+         */
         public Builder withUrl(String url) {
             Preconditions.checkNotNull(url);
             this.url = url;
             return this;
         }
 
+        /**
+         * @return validated Feed object.
+         */
         public Feed build() {
             Preconditions.checkNotNull(name);
             Preconditions.checkNotNull(url);
@@ -48,14 +59,14 @@ public class Feed {
     }
 
     /**
-     * @return the title of this feed
+     * @return title of this feed.
      */
     public String getName() {
         return name;
     }
 
     /**
-     * @return the URL of this feed
+     * @return URL of this feed.
      */
     public String getUrl() {
         return url;
@@ -67,11 +78,13 @@ public class Feed {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Feed)) return false;
-        Feed that = (Feed) o;
-        return Objects.equal(this.name, that.name) &&
-                Objects.equal(this.url, that.url);
+    public boolean equals(Object object) {
+        if (!(object instanceof Feed)) {
+            return false;
+        }
+        Feed that = (Feed) object;
+        return Objects.equal(this.name, that.name)
+                && Objects.equal(this.url, that.url);
     }
 
     @Override

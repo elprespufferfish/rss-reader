@@ -1,10 +1,7 @@
 package net.elprespufferfish.rssreader;
 
-import net.elprespufferfish.rssreader.Article.Builder;
 import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
 import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
-
-import org.joda.time.DateTime;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -18,13 +15,16 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
     private final SQLiteDatabase database;
     /**
-     * Feed URL that we are paging through
-     * NOTE: May be null to represent 'all feeds'
+     * Feed URL that we are paging through.
+     * NOTE: May be null to represent 'all feeds'.
      */
     private final String feedUrl;
     private final int count;
     private final boolean isHidingReadArticles;
 
+    /**
+     * Instantiate a new adapter.
+     */
     public ArticlePagerAdapter(FragmentManager fm, Context context, String feedUrl, boolean isHidingReadArticles) {
         super(fm);
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
@@ -36,19 +36,19 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
     private int computeCount() {
         String[] selectionArgs = new String[0];
-        String query = "SELECT COUNT(*)" +
-                "FROM " + ArticleTable.TABLE_NAME + " ";
+        String query = "SELECT COUNT(*)"
+                + "FROM " + ArticleTable.TABLE_NAME + " ";
         if (feedUrl != null) {
-            query += "JOIN " + FeedTable.TABLE_NAME + " " +
-                    "ON " + ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_FEED + "=" + FeedTable.TABLE_NAME + "." + FeedTable._ID + " " +
-                    "WHERE " + FeedTable.FEED_URL + "=? ";
+            query += "JOIN " + FeedTable.TABLE_NAME + " "
+                    + "ON " + ArticleTable.TABLE_NAME + "." + ArticleTable.ARTICLE_FEED + "=" + FeedTable.TABLE_NAME + "." + FeedTable._ID + " "
+                    + "WHERE " + FeedTable.FEED_URL + "=? ";
             selectionArgs = new String[] { feedUrl };
             if (isHidingReadArticles) {
-                query += "AND " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.READ_STATUS.READ + " ";
+                query += "AND " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.ReadStatus.READ + " ";
             }
         } else {
             if (isHidingReadArticles) {
-                query += "WHERE " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.READ_STATUS.READ + " ";
+                query += "WHERE " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.ReadStatus.READ + " ";
             }
         }
 
@@ -62,16 +62,17 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
     }
 
     @Override
-    public Fragment getItem(int i) {
-        if (i == count) {
+    public Fragment getItem(int index) {
+        if (index == count) {
             return new EndOfLineFragment();
         }
 
-        Fragment fragment = new ArticleFragment();
         Bundle bundle = new Bundle();
         bundle.putString(ArticleFragment.ARTICLE_FEED_URL_KEY, feedUrl);
-        bundle.putInt(ArticleFragment.ARTICLE_INDEX_KEY, i);
+        bundle.putInt(ArticleFragment.ARTICLE_INDEX_KEY, index);
         bundle.putBoolean(ArticleFragment.ARTICLE_IS_HIDING_READ_ARTICLES_KEY, isHidingReadArticles);
+
+        Fragment fragment = new ArticleFragment();
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -87,7 +88,7 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
     }
 
     /**
-     * Release resources
+     * Release resources.
      */
     public void close() {
         database.close();

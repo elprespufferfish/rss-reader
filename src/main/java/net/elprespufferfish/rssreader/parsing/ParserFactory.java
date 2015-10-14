@@ -11,6 +11,8 @@ public class ParserFactory {
      * @param xmlPullParser must not be advanced beyond start of stream.
      * @return {@link Parser} appropriate for this stream
      * @throws IllegalArgumentException if the stream type is unknown
+     * @throws XmlPullParserException if the document cannot be parsed
+     * @throws IOException if the document cannot be parsed
      */
     public static Parser newParser(XmlPullParser xmlPullParser) throws XmlPullParserException, IOException {
         int tokenType = xmlPullParser.getEventType();

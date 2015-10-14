@@ -77,10 +77,13 @@ public class ArticleFragment extends Fragment {
         eventBus.unregister(this);
     }
 
+    /**
+     * Check if this fragment has been selected.  If so, fire an ArticleSelectedEvent.
+     */
     @Subscribe
-    public void onSelected(ArticleSelectedEvent e) {
-        lastSelected = e.getIndex();
-        if (e.getIndex() == articleIndex && article != null) {
+    public void onSelected(ArticleSelectedEvent articleSelectedEvent) {
+        lastSelected = articleSelectedEvent.getIndex();
+        if (articleSelectedEvent.getIndex() == articleIndex && article != null) {
             eventBus.post(new ArticleLoadedEvent(articleIndex, article));
         }
     }
@@ -101,7 +104,7 @@ public class ArticleFragment extends Fragment {
         titleView.setClickable(true);
         titleView.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(article.getLink()));
                 ArticleFragment.this.startActivity(intent);
             }
@@ -140,47 +143,47 @@ public class ArticleFragment extends Fragment {
 
         private final SQLiteDatabase database;
         private final String feedUrl;
-        private final int i;
+        private final int offset;
         private final boolean isHidingReadArticles;
 
-        public FetchArticleTask(String feedUrl, int i, boolean isHidingReadArticles) {
+        public FetchArticleTask(String feedUrl, int offset, boolean isHidingReadArticles) {
             DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
             this.database = databaseHelper.getReadableDatabase();
             this.feedUrl = feedUrl;
-            this.i = i;
+            this.offset = offset;
             this.isHidingReadArticles = isHidingReadArticles;
         }
 
         @Override
         protected Article doInBackground(Void... params) {
             String[] selectionArgs = new String[0];
-            String query = "SELECT " +
-                    DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable._ID + ", " +
-                    DatabaseSchema.FeedTable.TABLE_NAME + "." + DatabaseSchema.FeedTable.FEED_NAME + ", " +
-                    DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_NAME + ", " +
-                    DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_URL + ", " +
-                    DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_PUBLICATION_DATE + ", " +
-                    DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_DESCRIPTION + ", " +
-                    DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_IMAGE_URL + ", " +
-                    DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_GUID + " " +
-                    "FROM " + DatabaseSchema.ArticleTable.TABLE_NAME + " " +
-                    "JOIN " + DatabaseSchema.FeedTable.TABLE_NAME + " " +
-                    "ON " + DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_FEED + "=" + DatabaseSchema.FeedTable.TABLE_NAME + "." + DatabaseSchema.FeedTable._ID + " ";
+            String query = "SELECT "
+                    + DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable._ID + ", "
+                    + DatabaseSchema.FeedTable.TABLE_NAME + "." + DatabaseSchema.FeedTable.FEED_NAME + ", "
+                    + DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_NAME + ", "
+                    + DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_URL + ", "
+                    + DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_PUBLICATION_DATE + ", "
+                    + DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_DESCRIPTION + ", "
+                    + DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_IMAGE_URL + ", "
+                    + DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_GUID + " "
+                    + "FROM " + DatabaseSchema.ArticleTable.TABLE_NAME + " "
+                    +  "JOIN " + DatabaseSchema.FeedTable.TABLE_NAME + " "
+                    + "ON " + DatabaseSchema.ArticleTable.TABLE_NAME + "." + DatabaseSchema.ArticleTable.ARTICLE_FEED + "=" + DatabaseSchema.FeedTable.TABLE_NAME + "." + DatabaseSchema.FeedTable._ID + " ";
             if (feedUrl != null) {
                 query += "WHERE " + DatabaseSchema.FeedTable.FEED_URL + "=? ";
                 selectionArgs = new String[] { feedUrl };
 
                 if (isHidingReadArticles) {
-                    query += "AND " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.READ_STATUS.READ + " ";
+                    query += "AND " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.ReadStatus.READ + " ";
                 }
             } else {
                 if (isHidingReadArticles) {
-                    query += "WHERE " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.READ_STATUS.READ + " ";
+                    query += "WHERE " + DatabaseSchema.ArticleTable.ARTICLE_IS_READ + "!=" + DatabaseSchema.ReadStatus.READ + " ";
                 }
             }
-            query += "ORDER BY " + DatabaseSchema.ArticleTable.ARTICLE_PUBLICATION_DATE + " DESC " +
-                    "LIMIT 1 " +
-                    "OFFSET " + i;
+            query += "ORDER BY " + DatabaseSchema.ArticleTable.ARTICLE_PUBLICATION_DATE + " DESC "
+                    + "LIMIT 1 "
+                    + "OFFSET " + offset;
             Cursor articleCursor = database.rawQuery(query, selectionArgs);
             try {
                 articleCursor.moveToNext();
