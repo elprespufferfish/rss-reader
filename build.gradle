@@ -11,6 +11,19 @@ defaultTasks 'build'
 
 apply plugin: 'com.android.application'
 apply plugin: 'findbugs'
+apply plugin: 'checkstyle'
+
+checkstyle {
+    toolVersion = "6.11"
+}
+task checkstyle(type: Checkstyle) {
+    configFile file("${project.rootDir}/google_checks.xml")
+    source 'src/main'
+    include '**/*.java'
+    exclude '**/gen/**'
+
+    classpath = files()
+}
 
 android {
     compileSdkVersion 23
