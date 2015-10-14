@@ -263,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (articlePagerAdapter.getCount() == 0) {
             findViewById(R.id.no_articles).setVisibility(View.VISIBLE);
+            MainActivity.this.getSupportActionBar().setTitle(R.string.app_name);
         } else {
             findViewById(R.id.no_articles).setVisibility(View.INVISIBLE);
         }
