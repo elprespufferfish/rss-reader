@@ -81,7 +81,7 @@ public class Feeds {
         return INSTANCE;
     }
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private final ExecutorService executor = Executors.newCachedThreadPool();
     private final SQLiteDatabase database;
     private final XmlPullParserFactory xmlPullParserFactory;
     private final HttpUrlConnectionFactory httpUrlConnectionFactory = new HttpUrlConnectionFactory();
