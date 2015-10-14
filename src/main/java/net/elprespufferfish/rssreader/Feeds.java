@@ -296,16 +296,7 @@ public class Feeds {
 
         removeOldArticles();
 
-        vacuum();
-
         return isRefreshInProgress.getAndSet(false);
-    }
-
-    private void vacuum() {
-        long startTime = System.nanoTime();
-        database.execSQL("VACUUM");
-        long vacuumDuration = MILLISECONDS.convert(System.nanoTime() - startTime, NANOSECONDS);
-        LOGGER.info("Vacuum complete in " + vacuumDuration + "ms");
     }
 
     /**

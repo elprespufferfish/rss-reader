@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
 
 /**
  * Handle refreshing feeds.
@@ -82,6 +85,11 @@ public class RefreshService extends IntentService {
         try {
             wasRefreshStarted = Feeds.getInstance().refresh();
             didRefreshComplete = true;
+
+            if (!forceRefresh) {
+                // Was a scheduled refresh.  Take a little longer to clean up the database
+                vacuum(database);
+            }
         } finally {
             database.close();
 
@@ -124,6 +132,13 @@ public class RefreshService extends IntentService {
     private boolean isOnWifiPreLollipop(ConnectivityManager connectivityManager) {
         NetworkInfo networkInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         return networkInfo.isConnected();
+    }
+
+    private void vacuum(SQLiteDatabase database) {
+        long startTime = System.nanoTime();
+        database.execSQL("VACUUM");
+        long vacuumDuration = MILLISECONDS.convert(System.nanoTime() - startTime, NANOSECONDS);
+        LOGGER.info("Vacuum complete in " + vacuumDuration + "ms");
     }
 
 }
