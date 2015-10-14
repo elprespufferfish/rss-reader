@@ -315,7 +315,7 @@ public class Feeds {
         Cursor feedCursor = database.rawQuery(
                 "SELECT " + FeedTable.FEED_NAME + ", " + FeedTable.FEED_URL + ", COUNT(CASE WHEN " + ArticleTable.ARTICLE_IS_READ + "=" + DatabaseSchema.READ_STATUS.UNREAD + " THEN 1 END) " +
                         "FROM " + FeedTable.TABLE_NAME + " " +
-                        "JOIN " + ArticleTable.TABLE_NAME + " " +
+                        "LEFT JOIN " + ArticleTable.TABLE_NAME + " " +
                         "ON " + FeedTable.TABLE_NAME + "." + FeedTable._ID + "=" + ArticleTable.ARTICLE_FEED + " " +
                         "GROUP BY " + FeedTable.TABLE_NAME + "." + FeedTable._ID + " " +
                         "ORDER BY " + FeedTable.FEED_NAME
