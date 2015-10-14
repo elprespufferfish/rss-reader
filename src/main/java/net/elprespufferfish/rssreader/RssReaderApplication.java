@@ -27,6 +27,8 @@ public class RssReaderApplication extends Application {
 
         eventBus = new EventBus();
 
+        registerActivityLifecycleCallbacks(new ForegroundStatus());
+
         Feeds.initialize(this);
 
         scheduleRefresh();
@@ -61,7 +63,6 @@ public class RssReaderApplication extends Application {
     public void scheduleRefresh() {
         Calendar startTime = Calendar.getInstance();
         startTime.setTimeInMillis(System.currentTimeMillis());
-        startTime.add(Calendar.DATE, 1);
         startTime.set(Calendar.HOUR_OF_DAY, 8);
         startTime.set(Calendar.MINUTE, 0);
 

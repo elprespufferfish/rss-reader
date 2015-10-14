@@ -64,6 +64,10 @@ public class RefreshService extends IntentService {
             LOGGER.info("Skipping refresh due to lack of WiFi");
             return;
         }
+        if (!forceRefresh && ForegroundStatus.isForeground()) {
+            LOGGER.info("Skipping refresh since app is in the foreground");
+            return;
+        }
 
         isRefreshInProgress.set(true);
 
