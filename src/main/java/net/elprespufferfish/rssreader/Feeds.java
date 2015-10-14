@@ -531,14 +531,14 @@ public class Feeds {
     }
 
     private void removeOldArticles() {
-        LOGGER.info("Deleting old articles");
         long startTime = System.nanoTime();
 
         DateTime oldestDate = DateTime.now().minusDays(MAX_AGE_DAYS);
+        LOGGER.info("Deleting old articles older than {}", oldestDate.getMillis());
         int deletedRows = database.delete(
                 ArticleTable.TABLE_NAME,
-                "? < ?",
-                new String[] { ArticleTable.ARTICLE_PUBLICATION_DATE, String.valueOf(oldestDate.getMillis()) });
+                ArticleTable.ARTICLE_PUBLICATION_DATE + " < ?",
+                new String[] { String.valueOf(oldestDate.getMillis()) });
 
         long endTime = System.nanoTime();
         long durationMs = MILLISECONDS.convert(endTime - startTime, NANOSECONDS);
