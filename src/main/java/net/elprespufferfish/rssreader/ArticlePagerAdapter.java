@@ -63,6 +63,10 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int i) {
+        if (i == count) {
+            return new EndOfLineFragment();
+        }
+
         Fragment fragment = new ArticleFragment();
         Bundle bundle = new Bundle();
         bundle.putString(ArticleFragment.ARTICLE_FEED_URL_KEY, feedUrl);
@@ -74,7 +78,12 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getCount() {
-        return count;
+        if (count > 0) {
+            // add an extra item for the 'end of the line' message
+            return count + 1;
+        } else {
+            return count;
+        }
     }
 
     /**
