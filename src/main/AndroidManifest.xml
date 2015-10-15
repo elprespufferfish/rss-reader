@@ -18,7 +18,9 @@
             android:name=".RssReaderApplication"
             android:label="@string/app_name"
             android:hardwareAccelerated="true"
-            android:allowBackup="true">
+            android:allowBackup="true"
+            android:theme="@style/Theme.AppCompat.Light"
+            >
 
         <service
             android:name=".RefreshService"
@@ -31,9 +33,10 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name="MainActivity"
-                android:label="@string/app_name"
-                android:theme="@style/Theme.AppCompat.Light">
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            >
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -64,16 +67,28 @@
             </intent-filter>
 
             <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity"
-                />
-
-            <meta-data
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable"
                 />
 
-         </activity>
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity"
+                />
+
+        </activity>
+
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:parentActivityName=".MainActivity"
+            >
+
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity"
+                />
+
+        </activity>
 
         <activity
             android:launchMode="singleTop"

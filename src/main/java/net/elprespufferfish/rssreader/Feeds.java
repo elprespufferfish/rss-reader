@@ -24,6 +24,7 @@ import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
 import net.elprespufferfish.rssreader.net.HttpUrlConnectionFactory;
 import net.elprespufferfish.rssreader.parsing.Parser;
 import net.elprespufferfish.rssreader.parsing.ParserFactory;
+import net.elprespufferfish.rssreader.settings.Settings;
 
 import org.joda.time.DateTime;
 import org.jsoup.Jsoup;
@@ -38,10 +39,12 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
@@ -51,7 +54,6 @@ import com.google.common.net.HttpHeaders;
 public class Feeds {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Feeds.class);
-    private static final int MAX_AGE_DAYS = 14; // do not store articles older than this
 
     private static final Set<String> HTML_CONTENT_TYPES;
 
@@ -100,6 +102,7 @@ public class Feeds {
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final SQLiteDatabase database;
     private final XmlPullParserFactory xmlPullParserFactory;
+    private final SharedPreferences preferences;
     private final HttpUrlConnectionFactory httpUrlConnectionFactory = new HttpUrlConnectionFactory();
     private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
 
@@ -113,6 +116,8 @@ public class Feeds {
         } catch (XmlPullParserException e) {
             throw new RuntimeException("Could not instantiate XmlPullParserFactory", e);
         }
+
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     /**
@@ -477,7 +482,8 @@ public class Feeds {
             xmlPullParser.setInput(feedInput, null);
 
             Parser articleParser = ParserFactory.newParser(xmlPullParser);
-            return articleParser.parseArticles(feedAddress, xmlPullParser, MAX_AGE_DAYS, latestGuid);
+            int maxAge = preferences.getInt(Settings.RETENTION_PERIOD.first, Settings.RETENTION_PERIOD.second);
+            return articleParser.parseArticles(feedAddress, xmlPullParser, maxAge, latestGuid);
         } finally {
             Closeables.closeQuietly(feedInput);
             if (connection != null) {
@@ -533,7 +539,8 @@ public class Feeds {
     private void removeOldArticles() {
         long startTime = System.nanoTime();
 
-        DateTime oldestDate = DateTime.now().minusDays(MAX_AGE_DAYS);
+        int maxAge = preferences.getInt(Settings.RETENTION_PERIOD.first, Settings.RETENTION_PERIOD.second);
+        DateTime oldestDate = DateTime.now().minusDays(maxAge);
         LOGGER.info("Deleting old articles older than {}", oldestDate.getMillis());
         int deletedRows = database.delete(
                 ArticleTable.TABLE_NAME,

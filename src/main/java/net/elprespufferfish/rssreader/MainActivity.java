@@ -34,6 +34,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import net.elprespufferfish.rssreader.util.ToggleableShareActionProvider;
+import net.elprespufferfish.rssreader.settings.SettingsActivity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -470,6 +471,11 @@ public class MainActivity extends AppCompatActivity {
                     menuItem.setIcon(isHidingReadArticles ? R.drawable.ic_visibility_black_24dp : R.drawable.ic_visibility_off_black_24dp);
                     reloadPager(currentFeed);
 
+                    drawerLayout.closeDrawers();
+                    break;
+                }
+                case R.id.drawer_open_settings: {
+                    startActivity(new Intent(MainActivity.this, SettingsActivity.class));
                     drawerLayout.closeDrawers();
                     break;
                 }

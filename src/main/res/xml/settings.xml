@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- TODO - move into constants file -->
+    <net.elprespufferfish.rssreader.settings.NumberPickerPreference
+        android:defaultValue="14"
+        android:key="retention_period"
+        android:title="@string/retention_period_title"
+        />
+
+</PreferenceScreen>
