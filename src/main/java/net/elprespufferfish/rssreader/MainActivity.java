@@ -31,6 +31,8 @@ import android.widget.EditText;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
+import net.elprespufferfish.rssreader.util.ToggleableShareActionProvider;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private ArticlePagerAdapter articlePagerAdapter;
     private ProgressDialog refreshDialog;
-    private ShareActionProvider shareActionProvider;
+    private ToggleableShareActionProvider shareActionProvider;
     private Feed nullFeed; // sentinel Feed to select 'all' feeds
     private Feed currentFeed;
     private boolean isHidingReadArticles = false;
@@ -130,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        this.shareActionProvider = new ShareActionProvider(this);
+        this.shareActionProvider = new ToggleableShareActionProvider(this);
 
         nullFeed = Feed.nullFeed(this);
         reloadPager(nullFeed);
@@ -247,6 +249,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
+                if (articlePagerAdapter.getItem(position) instanceof EndOfLineFragment) {
+                    getSupportActionBar().setTitle(R.string.app_name);
+                    shareActionProvider.hide();
+                    return;
+                }
+
+                shareActionProvider.show();
                 MainActivity.this.eventBus.post(new ArticleSelectedEvent(position));
             }
 
