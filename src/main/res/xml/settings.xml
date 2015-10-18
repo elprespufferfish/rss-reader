@@ -8,4 +8,13 @@
         android:title="@string/retention_period_title"
         />
 
+    <!-- TODO - move into constants file -->
+    <ListPreference
+        android:key="refresh_frequency"
+        android:title="@string/refresh_frequency_title"
+        android:entries="@array/refresh_period_keys"
+        android:entryValues="@array/refresh_period_values"
+        android:defaultValue="86400000"
+        />
+
 </PreferenceScreen>

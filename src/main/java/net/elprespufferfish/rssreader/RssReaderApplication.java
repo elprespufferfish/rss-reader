@@ -5,12 +5,15 @@ import android.app.Application;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.webkit.WebView;
 
 import com.google.common.eventbus.EventBus;
 
+import net.elprespufferfish.rssreader.settings.Settings;
 import net.elprespufferfish.rssreader.util.LoggingActivityLifecycleCallbacks;
 
 import org.slf4j.Logger;
@@ -39,6 +42,7 @@ public class RssReaderApplication extends Application {
         Feeds.initialize(this);
 
         scheduleRefresh();
+        monitorRefreshPreferenceChange();
 
         if (BuildConfig.DEBUG) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
@@ -89,7 +93,8 @@ public class RssReaderApplication extends Application {
         startTime.set(Calendar.HOUR_OF_DAY, 8);
         startTime.set(Calendar.MINUTE, 0);
 
-        long interval = AlarmManager.INTERVAL_DAY;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        long interval = Long.parseLong(preferences.getString(Settings.REFRESH_FREQUENCY.first, Settings.REFRESH_FREQUENCY.second));
 
         LOGGER.info("Refresh scheduled for " + startTime + " with an interval of " + interval);
 
@@ -101,6 +106,18 @@ public class RssReaderApplication extends Application {
                 startTime.getTimeInMillis(),
                 interval,
                 pendingIntent);
+    }
+
+    private void monitorRefreshPreferenceChange() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        preferences.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                if (Settings.REFRESH_FREQUENCY.first.equals(key)) {
+                    scheduleRefresh(false);
+                }
+            }
+        });
     }
 
 }

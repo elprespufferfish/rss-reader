@@ -59,5 +59,6 @@
     <string name="settings">Settings</string>
     <string name="retention_period_title">Retention Period</string>
     <string name="days">Days</string>
+    <string name="refresh_frequency_title">Refresh Frequency</string>
 
 </resources>
