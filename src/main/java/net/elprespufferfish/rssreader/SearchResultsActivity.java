@@ -4,7 +4,6 @@ import android.app.SearchManager;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -166,10 +165,8 @@ public class SearchResultsActivity extends AppCompatActivity {
             viewHolder.card.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent();
-                    intent.setAction(Intent.ACTION_VIEW);
-                    intent.setData(Uri.parse(article.getLink()));
-
+                    Intent intent = new Intent(SearchResultsActivity.this, WebViewActivity.class);
+                    intent.putExtra(WebViewActivity.URL_ARGUMENT, article.getLink());
                     SearchResultsActivity.this.startActivity(intent);
                 }
             });

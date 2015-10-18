@@ -40,7 +40,7 @@ public class RssReaderApplication extends Application {
                     .penaltyDeath()
                     .build());
             StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                    .detectActivityLeaks()
+                    //.detectActivityLeaks() // TODO - this keeps causing issues with WebViewActivity
                     //.detectLeakedClosableObjects() // TODO - bug in okhttp exposes a leak in HttpResponseCachehttps://github.com/square/okhttp/issues/215
                     .detectLeakedSqlLiteObjects()
                     .penaltyLog()
@@ -48,7 +48,10 @@ public class RssReaderApplication extends Application {
                     .build());
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                // NOTE: webkit initialization requires disk reads
+                StrictMode.ThreadPolicy oldThreadPolicy = StrictMode.allowThreadDiskReads();
                 WebView.setWebContentsDebuggingEnabled(true);
+                StrictMode.setThreadPolicy(oldThreadPolicy);
             }
         }
     }
