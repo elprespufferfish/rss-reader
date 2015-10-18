@@ -1,10 +1,24 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:yourapp="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        tools:ignore="MissingPrefix">
-    <item android:id="@+id/action_share"
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:yourapp="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingPrefix"
+    >
+
+    <item
+        yourapp:actionViewClass="android.support.v7.widget.SearchView"
+        android:icon="@drawable/ic_search_black_24dp"
+        android:id="@+id/search"
+        yourapp:showAsAction="collapseActionView|ifRoom"
+        android:title="@string/search_title"
+        />
+
+    <item
+        yourapp:actionProviderClass="android.support.v7.widget.ShareActionProvider"
         android:icon="@drawable/ic_share_black_24dp"
-        android:title="@string/action_share"
+        android:id="@+id/action_share"
         yourapp:showAsAction="ifRoom"
-        yourapp:actionProviderClass="android.support.v7.widget.ShareActionProvider"/>
+        android:title="@string/action_share"
+        />
+
 </menu>

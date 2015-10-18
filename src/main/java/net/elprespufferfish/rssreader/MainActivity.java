@@ -1,6 +1,7 @@
 package net.elprespufferfish.rssreader;
 
 import android.app.ProgressDialog;
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -22,6 +23,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -153,6 +155,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.action_bar_menu, menu);
+
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.search));
+        ComponentName searchResultsComponent = new ComponentName(this, SearchResultsActivity.class);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(searchResultsComponent));
 
         MenuItem shareItem = menu.findItem(R.id.action_share);
         MenuItemCompat.setActionProvider(shareItem, shareActionProvider);

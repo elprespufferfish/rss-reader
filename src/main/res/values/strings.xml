@@ -8,7 +8,10 @@
     <string name="drawer_remove_feed">Remove Feed</string>
     <string name="drawer_mark_all_read">Mark All as Read</string>
 
+    <string name="search_title">Search Articles</string>
+    <string name="search_hint">Search Articles</string>
     <string name="action_share">Share Article</string>
+
     <string name="loading_articles">Loading new articles&#8230;</string>
     <string name="refresh_failed">Refresh Failed</string>
     <string name="refresh_already_started">Refresh Already in Progress&#8230;</string>
@@ -50,5 +53,8 @@
 
     <string name="no_articles">No new articles.  Do you need to refresh?</string>
     <string name="end_of_the_line">No more articles to read!</string>
+
+    <string name="search_results_title">Search Results</string>
+    <string name="no_search_results">No Matching Articles Found!</string>
 
 </resources>
