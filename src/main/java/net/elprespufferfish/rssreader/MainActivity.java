@@ -1,5 +1,6 @@
 package net.elprespufferfish.rssreader;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
@@ -315,6 +316,7 @@ public class MainActivity extends AppCompatActivity {
 
     private class NavigationClickListener implements NavigationView.OnNavigationItemSelectedListener {
 
+        @SuppressLint("InflateParams")
         @Override
         public boolean onNavigationItemSelected(MenuItem menuItem) {
             switch (menuItem.getItemId()) {

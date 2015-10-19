@@ -1,5 +1,6 @@
 package net.elprespufferfish.rssreader;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
@@ -32,6 +33,7 @@ public class WebViewActivity extends AppCompatActivity {
     private ShareActionProvider shareActionProvider;
     private WebView webView;
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

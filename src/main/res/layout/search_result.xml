@@ -23,7 +23,7 @@
 
         <TextView
             android:id="@+id/search_result_feed"
-            android:gravity="right"
+            android:gravity="end"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:textSize="14sp"

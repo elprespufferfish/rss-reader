@@ -36,12 +36,10 @@
     <string name="add_feeds_title">Add New RSS Feeds</string>
     <string name="add_feeds_ok">Add Feeds</string>
     <string name="add_feeds_cancel">Cancel</string>
-    <string name="adding_feeds">Adding Feeds</string>
     <string name="feeds_added">Feeds Added</string>
 
     <string name="all_feeds">All Feeds</string>
     <string name="view_feed_title">Select Feed</string>
-    <string name="view_feed_ok">Select Feed</string>
 
     <string name="remove_feed_title">Remove Feed</string>
     <string name="remove_feed_ok">Remove Feed</string>
