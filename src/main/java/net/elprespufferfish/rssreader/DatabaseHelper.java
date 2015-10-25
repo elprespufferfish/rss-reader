@@ -1,15 +1,11 @@
 package net.elprespufferfish.rssreader;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
-import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
+import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -27,24 +23,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + FeedTable.FEED_NAME + " TEXT NOT NULL,"
                 + FeedTable.FEED_URL + " TEXT NOT NULL UNIQUE"
                 + ")");
-
-        Map<String, String> defaultFeeds = new HashMap<String, String>();
-        defaultFeeds.put("/Film", "http://feeds2.feedburner.com/slashfilm");
-        defaultFeeds.put("Autoblog", "http://www.autoblog.com/rss.xml");
-        defaultFeeds.put("Engadget", "http://www.engadget.com/rss.xml");
-        defaultFeeds.put("LifeHacker", "http://feeds.gawker.com/lifehacker/full");
-        defaultFeeds.put("Penny Arcade", "http://feeds.penny-arcade.com/pa-mainsite");
-        defaultFeeds.put("xkcd.com", "https://xkcd.com/rss.xml");
-        defaultFeeds.put("Android Developers Blog", "http://feeds.feedburner.com/blogspot/hsDu");
-        defaultFeeds.put("Google Voice Blog", "http://feeds2.feedburner.com/GoogleVoiceBlog");
-        defaultFeeds.put("cuteoverload", "http://cuteoverload.com/feed/");
-
-        for (Entry<String, String> feedEntry : defaultFeeds.entrySet()) {
-            ContentValues values = new ContentValues();
-            values.put(FeedTable.FEED_NAME, feedEntry.getKey());
-            values.put(FeedTable.FEED_URL, feedEntry.getValue());
-            db.insert(FeedTable.TABLE_NAME, null, values);
-        }
 
         db.execSQL("CREATE TABLE " + ArticleTable.TABLE_NAME + " ("
                 + ArticleTable._ID + " INTEGER PRIMARY KEY,"

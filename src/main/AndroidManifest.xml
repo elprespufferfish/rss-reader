@@ -19,6 +19,8 @@
             android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:allowBackup="true"
+            android:backupAgent=".backup.RssReaderBackupAgent"
+            android:restoreAnyVersion="true"
             android:theme="@style/Theme.AppCompat.Light"
             >
 
@@ -102,6 +104,11 @@
                 />
 
         </activity>
+
+        <meta-data
+            android:name="com.google.android.backup.api_key"
+            android:value="AEdPqrEAAAAIYwiLicXIcL8lKX0M4H0zPyrN4d-Jacew3seLfg"
+            />
 
     </application>
 

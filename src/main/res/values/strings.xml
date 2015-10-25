@@ -44,7 +44,7 @@
 
     <string name="remove_feed_title">Remove Feed</string>
     <string name="remove_feed_ok">Remove Feed</string>
-    <string name="remove_feed_cancel">Cancel</string>
+    <string name="remove_feed_cancel">@string/cancel</string>
     <string name="remove_feed_complete">%s Removed</string>
 
     <string name="hide_unread_articles">Hide Read Articles</string>
@@ -57,8 +57,26 @@
     <string name="no_search_results">No Matching Articles Found!</string>
 
     <string name="settings">Settings</string>
+    <string name="general">General</string>
     <string name="retention_period_title">Retention Period</string>
     <string name="days">Days</string>
     <string name="refresh_frequency_title">Refresh Frequency</string>
 
+    <string name="backup_restore">Backup / Restore</string>
+    <string name="backup">Backup Feeds</string>
+    <string name="backup_message">Backup scheduled</string>
+
+    <string name="restore">Restore Feeds</string>
+    <string name="restore_prompt_title">Restore feeds?</string>
+    <string name="restore_prompt_message">Would you like to restore your feeds from the cloud?\nThis will replace your current articles.</string>
+    <string name="restore_prompt_cancel">@string/cancel</string>
+    <string name="restore_prompt_ok">Restore</string>
+    <string name="restore_progress_title">Restoring Feeds</string>
+    <string name="restore_progress_message">Restoring feeds from backup</string>
+    <string name="restore_failure_title">Restore failed!</string>
+    <string name="restore_failure_message">Restore from the cloud has failed :(</string>
+    <string name="restore_failure_ok">OK</string>
+    <string name="restore_complete">Feeds restored</string>
+
+    <string name="cancel">Cancel</string>
 </resources>

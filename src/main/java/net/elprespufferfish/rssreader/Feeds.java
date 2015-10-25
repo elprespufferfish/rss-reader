@@ -37,6 +37,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import android.app.backup.BackupManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -100,6 +101,7 @@ public class Feeds {
     }
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final Context context;
     private final SQLiteDatabase database;
     private final XmlPullParserFactory xmlPullParserFactory;
     private final SharedPreferences preferences;
@@ -107,6 +109,7 @@ public class Feeds {
     private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
 
     private Feeds(Context context) {
+        this.context = context.getApplicationContext();
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         database = databaseHelper.getWritableDatabase();
 
@@ -239,6 +242,7 @@ public class Feeds {
         values.put(FeedTable.FEED_NAME, feed.getName());
         values.put(FeedTable.FEED_URL, feed.getUrl());
         database.insertOrThrow(FeedTable.TABLE_NAME, null, values);
+        new BackupManager(context).dataChanged();
     }
 
     /**
@@ -379,8 +383,9 @@ public class Feeds {
             database.delete(
                     FeedTable.TABLE_NAME,
                     FeedTable.FEED_URL + "=?",
-                    new String[] { feed.getUrl() });
+                    new String[]{feed.getUrl()});
             database.setTransactionSuccessful();
+            new BackupManager(context).dataChanged();
         } finally {
             database.endTransaction();
         }

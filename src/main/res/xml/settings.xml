@@ -1,20 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- TODO - move into constants file -->
-    <net.elprespufferfish.rssreader.settings.NumberPickerPreference
-        android:defaultValue="14"
-        android:key="retention_period"
-        android:title="@string/retention_period_title"
-        />
+    <PreferenceCategory android:title="@string/general">
 
-    <!-- TODO - move into constants file -->
-    <ListPreference
-        android:key="refresh_frequency"
-        android:title="@string/refresh_frequency_title"
-        android:entries="@array/refresh_period_keys"
-        android:entryValues="@array/refresh_period_values"
-        android:defaultValue="86400000"
-        />
+        <!-- TODO - move into constants file -->
+        <net.elprespufferfish.rssreader.settings.NumberPickerPreference
+            android:defaultValue="14"
+            android:key="retention_period"
+            android:title="@string/retention_period_title"
+            />
+
+        <!-- TODO - move into constants file -->
+        <ListPreference
+            android:key="refresh_frequency"
+            android:title="@string/refresh_frequency_title"
+            android:entries="@array/refresh_period_keys"
+            android:entryValues="@array/refresh_period_values"
+            android:defaultValue="86400000"
+            />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/backup_restore">
+
+        <Preference
+            android:key="backup"
+            android:title="@string/backup"
+            />
+
+        <Preference
+            android:key="restore"
+            android:title="@string/restore"
+            />
+
+    </PreferenceCategory>
 
 </PreferenceScreen>
