@@ -11,6 +11,8 @@ import android.webkit.WebView;
 
 import com.google.common.eventbus.EventBus;
 
+import net.elprespufferfish.rssreader.util.LoggingActivityLifecycleCallbacks;
+
 import java.util.Calendar;
 
 public class RssReaderApplication extends Application {
@@ -53,6 +55,8 @@ public class RssReaderApplication extends Application {
                 WebView.setWebContentsDebuggingEnabled(true);
                 StrictMode.setThreadPolicy(oldThreadPolicy);
             }
+
+            registerActivityLifecycleCallbacks(new LoggingActivityLifecycleCallbacks());
         }
     }
 
