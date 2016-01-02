@@ -13,9 +13,14 @@ import com.google.common.eventbus.EventBus;
 
 import net.elprespufferfish.rssreader.util.LoggingActivityLifecycleCallbacks;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Calendar;
 
 public class RssReaderApplication extends Application {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RssReaderApplication.class);
 
     public static RssReaderApplication fromContext(Context context) {
         return (RssReaderApplication) context.getApplicationContext();
@@ -68,19 +73,34 @@ public class RssReaderApplication extends Application {
      * (Re)schedule an automated refresh of all feeds.
      */
     public void scheduleRefresh() {
+        scheduleRefresh(false);
+    }
+
+    private void scheduleRefresh(boolean forceUpdate) {
+        Intent refreshIntent = new Intent(this, RefreshService.class);
+        boolean isRefreshScheduled = PendingIntent.getService(this, 0, refreshIntent, PendingIntent.FLAG_NO_CREATE) != null;
+        if (isRefreshScheduled && !forceUpdate) {
+            LOGGER.debug("Not scheduling refresh since one is already scheduled");
+            return;
+        }
+
         Calendar startTime = Calendar.getInstance();
         startTime.setTimeInMillis(System.currentTimeMillis());
         startTime.set(Calendar.HOUR_OF_DAY, 8);
         startTime.set(Calendar.MINUTE, 0);
 
-        Intent refreshIntent = new Intent(this, RefreshService.class);
-        PendingIntent pendingIntent = PendingIntent.getService(this, 0, refreshIntent, 0);
+        long interval = AlarmManager.INTERVAL_DAY;
+
+        LOGGER.info("Refresh scheduled for " + startTime + " with an interval of " + interval);
+
+        PendingIntent pendingIntent = PendingIntent.getService(this, 0, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmManager.setInexactRepeating(
                 AlarmManager.RTC,
                 startTime.getTimeInMillis(),
-                AlarmManager.INTERVAL_DAY,
+                interval,
                 pendingIntent);
     }
+
 }
