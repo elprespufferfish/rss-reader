@@ -28,6 +28,7 @@ import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 
 import com.google.common.eventbus.EventBus;
@@ -89,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
     private ViewPager viewPager;
+    private Button nextButton;
     private ArticlePagerAdapter articlePagerAdapter;
     private ProgressDialog refreshDialog;
     private ToggleableShareActionProvider shareActionProvider;
@@ -121,6 +123,14 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout.setDrawerListener(drawerToggle);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+
+        nextButton = (Button) findViewById(R.id.next);
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewPager.setCurrentItem(viewPager.getCurrentItem() + 1);
+            }
+        });
 
         this.refreshDialog = new ProgressDialog(this);
         refreshDialog.setMessage(getString(R.string.loading_articles));
@@ -249,6 +259,15 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
+                int numArticles = articlePagerAdapter.getCount()
+                        - 1; // subtract 1 for the 'no more articles' page
+                if (position < numArticles) {
+                    LOGGER.debug("Article " + (position+1) + "/" + numArticles + " loaded");
+                    nextButton.setVisibility(View.VISIBLE);
+                } else {
+                    nextButton.setVisibility(View.GONE);
+                }
+
                 if (articlePagerAdapter.getItem(position) instanceof EndOfLineFragment) {
                     getSupportActionBar().setTitle(R.string.app_name);
                     shareActionProvider.hide();
