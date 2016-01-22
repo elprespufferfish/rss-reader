@@ -11,6 +11,7 @@ import com.google.common.io.ByteStreams;
 import net.elprespufferfish.rssreader.Feed;
 import net.elprespufferfish.rssreader.FeedAlreadyAddedException;
 import net.elprespufferfish.rssreader.FeedManager;
+import net.elprespufferfish.rssreader.RssReaderApplication;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,6 +29,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * Integrates with the Android Backup Service.
  *
@@ -40,11 +43,21 @@ public class RssReaderBackupAgent extends BackupAgent {
     private static final Logger LOGGER = LoggerFactory.getLogger(RssReaderBackupAgent.class);
     private static final String FEEDS_KEY = "feeds";
 
+    @Inject
+    FeedManager feedManager;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        RssReaderApplication.fromContext(getApplicationContext()).getApplicationComponent().inject(this);
+    }
+
     @Override
     public void onBackup(ParcelFileDescriptor oldState, BackupDataOutput data, ParcelFileDescriptor newState) throws IOException {
         // Check old state
         List<Feed> oldFeeds = readOldState(oldState);
-        List<Feed> currentFeeds = FeedManager.getInstance().getAllFeeds();
+        List<Feed> currentFeeds = feedManager.getAllFeeds();
         if (new HashSet<>(oldFeeds).equals(new HashSet<>(currentFeeds))) {
             LOGGER.info("Backup up to date");
             return;
@@ -134,7 +147,7 @@ public class RssReaderBackupAgent extends BackupAgent {
                     List<Feed> feeds = deserializeFeeds(serializedFeeds);
                     try {
                         for (Feed feed : feeds) {
-                            FeedManager.getInstance().addFeed(feed);
+                            feedManager.addFeed(feed);
                         }
                     } catch (FeedAlreadyAddedException e) {
                         // ignore

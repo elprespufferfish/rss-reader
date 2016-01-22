@@ -3,21 +3,20 @@ package net.elprespufferfish.rssreader;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
+import android.app.backup.BackupManager;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
+import android.os.AsyncTask;
+import android.preference.PreferenceManager;
+
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Closeables;
+import com.google.common.net.HttpHeaders;
 
 import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
 import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
@@ -37,20 +36,21 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import android.app.backup.BackupManager;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteStatement;
-import android.os.AsyncTask;
-import android.preference.PreferenceManager;
-
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.io.Closeables;
-import com.google.common.net.HttpHeaders;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FeedManager {
 
@@ -74,32 +74,6 @@ public class FeedManager {
         FEED_CONTENT_TYPES = ImmutableSet.copyOf(tmp);
     }
 
-    private static volatile FeedManager INSTANCE;
-
-    /**
-     * Initialize the singleton.
-     *
-     * @throws IllegalStateException if initialize has already been called.
-     */
-    public static FeedManager initialize(Context context) {
-        if (INSTANCE != null) {
-            throw new IllegalStateException("initialize() called twice");
-        }
-        INSTANCE = new FeedManager(context);
-        return INSTANCE;
-    }
-
-    /**
-     * @return initialized singleton.
-     * @throws IllegalStateException if initialize has not been called.
-     */
-    public static FeedManager getInstance() {
-        if (INSTANCE == null) {
-            throw new IllegalStateException("getInstance called before initialize()");
-        }
-        return INSTANCE;
-    }
-
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final Context context;
     private final SQLiteDatabase database;
@@ -108,10 +82,9 @@ public class FeedManager {
     private final HttpUrlConnectionFactory httpUrlConnectionFactory = new HttpUrlConnectionFactory();
     private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
 
-    private FeedManager(Context context) {
+    public FeedManager(Context context, DatabaseHelper databaseHelper) {
         this.context = context.getApplicationContext();
-        DatabaseHelper databaseHelper = new DatabaseHelper(context);
-        database = databaseHelper.getWritableDatabase();
+        this.database = databaseHelper.getWritableDatabase();
 
         try {
             xmlPullParserFactory = XmlPullParserFactory.newInstance();

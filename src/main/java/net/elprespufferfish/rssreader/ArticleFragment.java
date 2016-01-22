@@ -24,6 +24,8 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
@@ -36,7 +38,10 @@ public class ArticleFragment extends Fragment {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArticleFragment.class);
     private static final String ARTICLE_KEY = "article";
 
-    private EventBus eventBus;
+    @Inject
+    EventBus eventBus;
+    @Inject
+    DatabaseHelper databaseHelper;
     private int articleIndex;
     private int lastSelected = -1;
     private Article article;
@@ -50,7 +55,9 @@ public class ArticleFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        eventBus = RssReaderApplication.fromContext(getActivity()).getEventBus();
+
+        RssReaderApplication.fromContext(getContext()).getApplicationComponent().inject(this);
+
         eventBus.register(this);
 
         articleIndex = getArguments().getInt(ARTICLE_INDEX_KEY);
@@ -156,14 +163,11 @@ public class ArticleFragment extends Fragment {
 
     private class FetchArticleTask extends AsyncTask<Void, Void, Article> {
 
-        private final SQLiteDatabase database;
         private final String feedUrl;
         private final int offset;
         private final boolean isHidingReadArticles;
 
         public FetchArticleTask(String feedUrl, int offset, boolean isHidingReadArticles) {
-            DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
-            this.database = databaseHelper.getReadableDatabase();
             this.feedUrl = feedUrl;
             this.offset = offset;
             this.isHidingReadArticles = isHidingReadArticles;
@@ -199,6 +203,7 @@ public class ArticleFragment extends Fragment {
             query += "ORDER BY " + DatabaseSchema.ArticleTable.ARTICLE_PUBLICATION_DATE + " DESC "
                     + "LIMIT 1 "
                     + "OFFSET " + offset;
+            SQLiteDatabase database = databaseHelper.getReadableDatabase();
             Cursor articleCursor = database.rawQuery(query, selectionArgs);
             try {
                 articleCursor.moveToNext();
@@ -215,12 +220,12 @@ public class ArticleFragment extends Fragment {
                 return articleBuilder.build();
             } finally {
                 articleCursor.close();
+                database.close();
             }
         }
 
         @Override
         protected void onPostExecute(Article article) {
-            database.close();
             ArticleFragment.this.onArticleLoad(article);
         }
     }

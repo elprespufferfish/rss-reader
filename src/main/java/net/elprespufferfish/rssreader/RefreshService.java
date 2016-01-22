@@ -1,5 +1,8 @@
 package net.elprespufferfish.rssreader;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
 import android.annotation.TargetApi;
 import android.app.IntentService;
 import android.app.Notification;
@@ -20,8 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import javax.inject.Inject;
 
 
 /**
@@ -45,12 +47,23 @@ public class RefreshService extends IntentService {
 
     private final IBinder binder = new RefreshServiceBinder();
     private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
+    @Inject
+    FeedManager feedManager;
+    @Inject
+    DatabaseHelper databaseHelper;
 
     public RefreshService() {
         super("RefreshService");
     }
 
     // TODO - set restart behavior
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        RssReaderApplication.fromContext(this).getApplicationComponent().inject(this);
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -82,21 +95,22 @@ public class RefreshService extends IntentService {
         PendingIntent.getActivity(this, 0, notificationIntent, 0);
         startForeground(ONGOING_REFRESH_NOTIFICATION_ID, refreshNotification);
 
-        DatabaseHelper databaseHelper = new DatabaseHelper(this);
-        SQLiteDatabase database = databaseHelper.getWritableDatabase();
         boolean didRefreshComplete = false;
         boolean wasRefreshStarted = false;
         try {
-            wasRefreshStarted = FeedManager.getInstance().refresh();
+            wasRefreshStarted = feedManager.refresh();
             didRefreshComplete = true;
 
             if (!forceRefresh) {
                 // Was a scheduled refresh.  Take a little longer to clean up the database
-                vacuum(database);
+                SQLiteDatabase database = databaseHelper.getWritableDatabase();
+                try {
+                    vacuum(database);
+                } finally {
+                    database.close();
+                }
             }
         } finally {
-            database.close();
-
             isRefreshInProgress.set(false);
 
             // tear down ongoing notification

@@ -1,9 +1,5 @@
 package net.elprespufferfish.rssreader;
 
-import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
-import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
-
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -11,9 +7,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
+import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
+import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
+
 public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
-    private final SQLiteDatabase database;
+    private final DatabaseHelper databaseHelper;
     /**
      * Feed URL that we are paging through.
      * NOTE: May be null to represent 'all feeds'.
@@ -25,10 +24,9 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
     /**
      * Instantiate a new adapter.
      */
-    public ArticlePagerAdapter(FragmentManager fm, Context context, String feedUrl, boolean isHidingReadArticles) {
+    public ArticlePagerAdapter(FragmentManager fm, DatabaseHelper databaseHelper, String feedUrl, boolean isHidingReadArticles) {
         super(fm);
-        DatabaseHelper databaseHelper = new DatabaseHelper(context);
-        this.database = databaseHelper.getReadableDatabase();
+        this.databaseHelper = databaseHelper;
         this.feedUrl = feedUrl;
         this.isHidingReadArticles = isHidingReadArticles;
         this.count = computeCount();
@@ -52,12 +50,14 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
             }
         }
 
+        SQLiteDatabase database = databaseHelper.getReadableDatabase();
         Cursor articleCountCursor = database.rawQuery(query, selectionArgs);
         try {
             articleCountCursor.moveToNext();
             return articleCountCursor.getInt(0);
         } finally {
             articleCountCursor.close();
+            database.close();
         }
     }
 
@@ -85,13 +85,6 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
         } else {
             return count;
         }
-    }
-
-    /**
-     * Release resources.
-     */
-    public void close() {
-        database.close();
     }
 
 }

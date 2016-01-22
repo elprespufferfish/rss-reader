@@ -11,8 +11,9 @@ import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.webkit.WebView;
 
-import com.google.common.eventbus.EventBus;
-
+import net.elprespufferfish.rssreader.dagger.ApplicationComponent;
+import net.elprespufferfish.rssreader.dagger.ApplicationModule;
+import net.elprespufferfish.rssreader.dagger.DaggerApplicationComponent;
 import net.elprespufferfish.rssreader.settings.Settings;
 import net.elprespufferfish.rssreader.util.LoggingActivityLifecycleCallbacks;
 
@@ -29,17 +30,17 @@ public class RssReaderApplication extends Application {
         return (RssReaderApplication) context.getApplicationContext();
     }
 
-    private EventBus eventBus;
+    private ApplicationComponent applicationComponent;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        eventBus = new EventBus();
+        applicationComponent = DaggerApplicationComponent.builder()
+                .applicationModule(new ApplicationModule(this))
+                .build();
 
         registerActivityLifecycleCallbacks(new ForegroundStatus());
-
-        FeedManager.initialize(this);
 
         scheduleRefresh();
         monitorRefreshPreferenceChange();
@@ -69,8 +70,8 @@ public class RssReaderApplication extends Application {
         }
     }
 
-    public EventBus getEventBus() {
-        return eventBus;
+    public ApplicationComponent getApplicationComponent() {
+        return applicationComponent;
     }
 
     /**

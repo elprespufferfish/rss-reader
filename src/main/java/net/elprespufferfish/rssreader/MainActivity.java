@@ -48,6 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.inject.Inject;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
@@ -91,7 +93,12 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private EventBus eventBus;
+    @Inject
+    EventBus eventBus;
+    @Inject
+    FeedManager feedManager;
+    @Inject
+    DatabaseHelper databaseHelper;
     @Bind(R.id.drawer_layout)
     DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
@@ -112,8 +119,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.main);
 
         ButterKnife.bind(this);
+        RssReaderApplication.fromContext(this).getApplicationComponent().inject(this);
 
-        eventBus = RssReaderApplication.fromContext(this).getEventBus();
         eventBus.register(this);
 
         // set up left drawer
@@ -149,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         if (Intent.ACTION_SEND.equals(intent.getAction())) {
             if ("text/plain".equals(intent.getType())) {
                 String address = intent.getStringExtra(Intent.EXTRA_TEXT);
-                new AddFeedTask(this).execute(address);
+                new AddFeedTask(this, feedManager).execute(address);
             }
         }
 
@@ -241,23 +248,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        this.articlePagerAdapter.close();
         eventBus.unregister(this);
     }
 
     private void reloadPager(Feed feed) {
         // clean up previous feed
-        FeedManager.getInstance().finalizeGreyArticles();
+        feedManager.finalizeGreyArticles();
 
         // switch to new feed
         currentFeed = feed;
 
         viewPager.clearOnPageChangeListeners();
-        if (articlePagerAdapter != null) {
-            articlePagerAdapter.close();
-        }
 
-        articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), MainActivity.this, feed.getUrl(), isHidingReadArticles);
+        articlePagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), databaseHelper, feed.getUrl(), isHidingReadArticles);
         final ViewPager.OnPageChangeListener pageChangeListener = new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -324,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
         AsyncTask.THREAD_POOL_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
-                FeedManager.getInstance().markArticleGrey(article);
+                feedManager.markArticleGrey(article);
             }
         });
 
@@ -371,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
                                         feedUrl = "https://" + feedUrl;
                                     }
 
-                                    new AddFeedTask(MainActivity.this).execute(feedUrl);
+                                    new AddFeedTask(MainActivity.this, feedManager).execute(feedUrl);
                                 }
                             })
                             .setNegativeButton(R.string.add_feed_cancel, new DialogInterface.OnClickListener() {
@@ -384,7 +387,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.drawer_view_feed: {
-                    Map<Feed, Integer> feeds = FeedManager.getInstance().getUnreadArticleCounts();
+                    Map<Feed, Integer> feeds = feedManager.getUnreadArticleCounts();
 
                     final Map<Feed, Integer> allFeeds = new LinkedHashMap<>();
                     int totalUnread = 0;
@@ -436,7 +439,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.drawer_remove_feed: {
-                    final List<Feed> feeds = FeedManager.getInstance().getAllFeeds();
+                    final List<Feed> feeds = feedManager.getAllFeeds();
 
                     List<String> feedNames = new ArrayList<>(feeds.size());
                     for (Feed feed : feeds) {
@@ -456,7 +459,7 @@ public class MainActivity extends AppCompatActivity {
                                     dialog.dismiss();
                                     int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
                                     Feed feedToRemove = feeds.get(selectedPosition);
-                                    FeedManager.getInstance().removeFeed(feedToRemove);
+                                    feedManager.removeFeed(feedToRemove);
                                     Snackbar.make(
                                             viewPager,
                                             getString(R.string.remove_feed_complete, feedToRemove.getName()),
@@ -482,7 +485,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.drawer_mark_all_read: {
-                    FeedManager.getInstance().markAllAsRead(currentFeed);
+                    feedManager.markAllAsRead(currentFeed);
                     drawerLayout.closeDrawers();
                     break;
                 }

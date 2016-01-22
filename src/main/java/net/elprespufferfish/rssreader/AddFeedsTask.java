@@ -10,10 +10,12 @@ import android.support.design.widget.Snackbar;
 public class AddFeedsTask extends AsyncTask<Feed, Void, Void> {
 
     private final Activity activity;
+    private final FeedManager feedManager;
     private Exception exception;
 
-    public AddFeedsTask(Activity activity) {
+    public AddFeedsTask(Activity activity, FeedManager feedManager) {
         this.activity = activity;
+        this.feedManager = feedManager;
     }
 
     @Override
@@ -24,7 +26,7 @@ public class AddFeedsTask extends AsyncTask<Feed, Void, Void> {
 
         for (Feed feed : feeds) {
             try {
-                FeedManager.getInstance().addFeed(feed);
+                feedManager.addFeed(feed);
             } catch (FeedAlreadyAddedException ignored) {
                 // ignore
             } catch (Exception e) {

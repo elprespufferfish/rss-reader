@@ -23,11 +23,13 @@ class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AddFeedTask.class);
 
     private final MainActivity context;
+    private final FeedManager feedManager;
     private ProgressDialog progressDialog;
     private Exception exception;
 
-    public AddFeedTask(MainActivity context) {
+    public AddFeedTask(MainActivity context, FeedManager feedManager) {
         this.context = context;
+        this.feedManager = feedManager;
     }
 
     @Override
@@ -42,11 +44,11 @@ class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
         }
         String feedUrl = params[0];
         try {
-            List<Feed> feeds = FeedManager.getInstance().getFeeds(feedUrl);
+            List<Feed> feeds = feedManager.getFeeds(feedUrl);
             if (feeds.size() == 1) {
                 // only one feed, just add it
                 Feed feed = feeds.get(0);
-                FeedManager.getInstance().addFeed(feed);
+                feedManager.addFeed(feed);
             }
             return feeds;
         } catch (Exception e) {
@@ -116,7 +118,7 @@ class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
-                            new AddFeedsTask(context).execute(feedsToAdd.toArray(new Feed[0]));
+                            new AddFeedsTask(context, feedManager).execute(feedsToAdd.toArray(new Feed[0]));
                         }
                     })
                     .setNegativeButton(R.string.add_feeds_cancel, new DialogInterface.OnClickListener() {

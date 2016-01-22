@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
@@ -37,7 +39,8 @@ public class SearchResultsActivity extends AppCompatActivity {
 
     @Bind(R.id.search_results)
     RecyclerView recyclerView;
-    private SQLiteDatabase database;
+    @Inject
+    DatabaseHelper databaseHelper;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,6 +48,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         setContentView(R.layout.search_results);
 
         ButterKnife.bind(this);
+        RssReaderApplication.fromContext(this).getApplicationComponent().inject(this);
 
         getSupportActionBar().setTitle(getString(R.string.search_results_title));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -52,21 +56,12 @@ public class SearchResultsActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        DatabaseHelper databaseHelper = new DatabaseHelper(this);
-        this.database = databaseHelper.getReadableDatabase();
-
         handleIntent(getIntent());
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         handleIntent(intent);
-    }
-
-    @Override
-    public void onDestroy() {
-        database.close();
-        super.onDestroy();
     }
 
     private void handleIntent(Intent intent) {
@@ -77,16 +72,10 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         String query = intent.getStringExtra(SearchManager.QUERY);
         LOGGER.info("Received query: {}", query);
-        new SearchTask(database).execute(query);
+        new SearchTask().execute(query);
     }
 
     private class SearchTask extends AsyncTask<String, Void, ArrayList<Article>> {
-
-        private final SQLiteDatabase database;
-
-        public SearchTask(SQLiteDatabase database) {
-            this.database = database;
-        }
 
         @Override
         protected ArrayList<Article> doInBackground(String... strings) {
@@ -110,6 +99,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                     + "OR " + DatabaseSchema.ArticleTable.ARTICLE_DESCRIPTION + " LIKE ? "
                     + "ORDER BY " + DatabaseSchema.ArticleTable.ARTICLE_PUBLICATION_DATE + " DESC ";
 
+            SQLiteDatabase database = databaseHelper.getReadableDatabase();
             Cursor articleCursor = database.rawQuery(query, new String[] { "% "+term+" %", "% "+term+" %" });
             try {
                 ArrayList<Article> articles = new ArrayList<>(articleCursor.getCount());
@@ -132,6 +122,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                 return articles;
             } finally {
                 articleCursor.close();
+                database.close();
             }
         }
 
