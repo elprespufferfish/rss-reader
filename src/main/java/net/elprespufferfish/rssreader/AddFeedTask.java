@@ -42,11 +42,11 @@ class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
         }
         String feedUrl = params[0];
         try {
-            List<Feed> feeds = Feeds.getInstance().getFeeds(feedUrl);
+            List<Feed> feeds = FeedManager.getInstance().getFeeds(feedUrl);
             if (feeds.size() == 1) {
                 // only one feed, just add it
                 Feed feed = feeds.get(0);
-                Feeds.getInstance().addFeed(feed);
+                FeedManager.getInstance().addFeed(feed);
             }
             return feeds;
         } catch (Exception e) {

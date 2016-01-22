@@ -19,12 +19,12 @@ public class AddFeedsTask extends AsyncTask<Feed, Void, Void> {
     @Override
     protected Void doInBackground(Feed... feeds) {
         if (feeds.length == 0) {
-            throw new IllegalArgumentException("Must be called with Feeds to add");
+            throw new IllegalArgumentException("Must be called with FeedManager to add");
         }
 
         for (Feed feed : feeds) {
             try {
-                Feeds.getInstance().addFeed(feed);
+                FeedManager.getInstance().addFeed(feed);
             } catch (FeedAlreadyAddedException ignored) {
                 // ignore
             } catch (Exception e) {

@@ -52,9 +52,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Closeables;
 import com.google.common.net.HttpHeaders;
 
-public class Feeds {
+public class FeedManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Feeds.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FeedManager.class);
 
     private static final Set<String> HTML_CONTENT_TYPES;
 
@@ -74,18 +74,18 @@ public class Feeds {
         FEED_CONTENT_TYPES = ImmutableSet.copyOf(tmp);
     }
 
-    private static volatile Feeds INSTANCE;
+    private static volatile FeedManager INSTANCE;
 
     /**
      * Initialize the singleton.
      *
      * @throws IllegalStateException if initialize has already been called.
      */
-    public static Feeds initialize(Context context) {
+    public static FeedManager initialize(Context context) {
         if (INSTANCE != null) {
             throw new IllegalStateException("initialize() called twice");
         }
-        INSTANCE = new Feeds(context);
+        INSTANCE = new FeedManager(context);
         return INSTANCE;
     }
 
@@ -93,7 +93,7 @@ public class Feeds {
      * @return initialized singleton.
      * @throws IllegalStateException if initialize has not been called.
      */
-    public static Feeds getInstance() {
+    public static FeedManager getInstance() {
         if (INSTANCE == null) {
             throw new IllegalStateException("getInstance called before initialize()");
         }
@@ -108,7 +108,7 @@ public class Feeds {
     private final HttpUrlConnectionFactory httpUrlConnectionFactory = new HttpUrlConnectionFactory();
     private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
 
-    private Feeds(Context context) {
+    private FeedManager(Context context) {
         this.context = context.getApplicationContext();
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         database = databaseHelper.getWritableDatabase();
@@ -309,7 +309,7 @@ public class Feeds {
     }
 
     /**
-     * @return List of all added Feeds.
+     * @return List of all added FeedManager.
      */
     public List<Feed> getAllFeeds() {
         Cursor feedCursor = database.query(
@@ -335,7 +335,7 @@ public class Feeds {
     }
 
     /**
-     * @return Map of all added Feeds to the number of unread articles for that feed.
+     * @return Map of all added FeedManager to the number of unread articles for that feed.
      */
     public Map<Feed, Integer> getUnreadArticleCounts() {
         Map<Feed, Integer> feeds = new TreeMap<>(new Comparator<Feed>() {

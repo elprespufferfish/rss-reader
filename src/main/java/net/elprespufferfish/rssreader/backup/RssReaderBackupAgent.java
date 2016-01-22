@@ -10,7 +10,7 @@ import com.google.common.io.ByteStreams;
 
 import net.elprespufferfish.rssreader.Feed;
 import net.elprespufferfish.rssreader.FeedAlreadyAddedException;
-import net.elprespufferfish.rssreader.Feeds;
+import net.elprespufferfish.rssreader.FeedManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,7 +44,7 @@ public class RssReaderBackupAgent extends BackupAgent {
     public void onBackup(ParcelFileDescriptor oldState, BackupDataOutput data, ParcelFileDescriptor newState) throws IOException {
         // Check old state
         List<Feed> oldFeeds = readOldState(oldState);
-        List<Feed> currentFeeds = Feeds.getInstance().getAllFeeds();
+        List<Feed> currentFeeds = FeedManager.getInstance().getAllFeeds();
         if (new HashSet<>(oldFeeds).equals(new HashSet<>(currentFeeds))) {
             LOGGER.info("Backup up to date");
             return;
@@ -134,7 +134,7 @@ public class RssReaderBackupAgent extends BackupAgent {
                     List<Feed> feeds = deserializeFeeds(serializedFeeds);
                     try {
                         for (Feed feed : feeds) {
-                            Feeds.getInstance().addFeed(feed);
+                            FeedManager.getInstance().addFeed(feed);
                         }
                     } catch (FeedAlreadyAddedException e) {
                         // ignore

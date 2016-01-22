@@ -239,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void reloadPager(Feed feed) {
         // clean up previous feed
-        Feeds.getInstance().finalizeGreyArticles();
+        FeedManager.getInstance().finalizeGreyArticles();
 
         // switch to new feed
         currentFeed = feed;
@@ -317,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
         AsyncTask.THREAD_POOL_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
-                Feeds.getInstance().markArticleGrey(article);
+                FeedManager.getInstance().markArticleGrey(article);
             }
         });
 
@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.drawer_view_feed: {
-                    Map<Feed, Integer> feeds = Feeds.getInstance().getUnreadArticleCounts();
+                    Map<Feed, Integer> feeds = FeedManager.getInstance().getUnreadArticleCounts();
 
                     final Map<Feed, Integer> allFeeds = new LinkedHashMap<>();
                     int totalUnread = 0;
@@ -429,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.drawer_remove_feed: {
-                    final List<Feed> feeds = Feeds.getInstance().getAllFeeds();
+                    final List<Feed> feeds = FeedManager.getInstance().getAllFeeds();
 
                     List<String> feedNames = new ArrayList<>(feeds.size());
                     for (Feed feed : feeds) {
@@ -449,7 +449,7 @@ public class MainActivity extends AppCompatActivity {
                                     dialog.dismiss();
                                     int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
                                     Feed feedToRemove = feeds.get(selectedPosition);
-                                    Feeds.getInstance().removeFeed(feedToRemove);
+                                    FeedManager.getInstance().removeFeed(feedToRemove);
                                     Snackbar.make(
                                             findViewById(R.id.pager),
                                             getString(R.string.remove_feed_complete, feedToRemove.getName()),
@@ -475,7 +475,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.drawer_mark_all_read: {
-                    Feeds.getInstance().markAllAsRead(currentFeed);
+                    FeedManager.getInstance().markAllAsRead(currentFeed);
                     drawerLayout.closeDrawers();
                     break;
                 }

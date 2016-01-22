@@ -39,7 +39,7 @@ public class RssReaderApplication extends Application {
 
         registerActivityLifecycleCallbacks(new ForegroundStatus());
 
-        Feeds.initialize(this);
+        FeedManager.initialize(this);
 
         scheduleRefresh();
         monitorRefreshPreferenceChange();
