@@ -2,9 +2,9 @@ package net.elprespufferfish.rssreader.dagger;
 
 import net.elprespufferfish.rssreader.ArticleFragment;
 import net.elprespufferfish.rssreader.MainActivity;
-import net.elprespufferfish.rssreader.RefreshService;
-import net.elprespufferfish.rssreader.SearchResultsActivity;
 import net.elprespufferfish.rssreader.backup.RssReaderBackupAgent;
+import net.elprespufferfish.rssreader.refresh.RefreshService;
+import net.elprespufferfish.rssreader.search.SearchResultsActivity;
 
 import javax.inject.Singleton;
 

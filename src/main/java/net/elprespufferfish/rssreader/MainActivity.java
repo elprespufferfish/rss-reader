@@ -36,6 +36,9 @@ import android.widget.EditText;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
+import net.elprespufferfish.rssreader.db.DatabaseHelper;
+import net.elprespufferfish.rssreader.refresh.RefreshService;
+import net.elprespufferfish.rssreader.search.SearchResultsActivity;
 import net.elprespufferfish.rssreader.settings.SettingsActivity;
 import net.elprespufferfish.rssreader.util.ToggleableShareActionProvider;
 

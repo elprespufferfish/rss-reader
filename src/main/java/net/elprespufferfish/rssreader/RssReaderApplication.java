@@ -14,7 +14,9 @@ import android.webkit.WebView;
 import net.elprespufferfish.rssreader.dagger.ApplicationComponent;
 import net.elprespufferfish.rssreader.dagger.ApplicationModule;
 import net.elprespufferfish.rssreader.dagger.DaggerApplicationComponent;
+import net.elprespufferfish.rssreader.refresh.RefreshService;
 import net.elprespufferfish.rssreader.settings.Settings;
+import net.elprespufferfish.rssreader.util.ForegroundStatus;
 import net.elprespufferfish.rssreader.util.LoggingActivityLifecycleCallbacks;
 
 import org.slf4j.Logger;

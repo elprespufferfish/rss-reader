@@ -1,11 +1,11 @@
-package net.elprespufferfish.rssreader;
+package net.elprespufferfish.rssreader.db;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
-import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
+import net.elprespufferfish.rssreader.db.DatabaseSchema.ArticleTable;
+import net.elprespufferfish.rssreader.db.DatabaseSchema.FeedTable;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 

@@ -1,14 +1,11 @@
 package net.elprespufferfish.rssreader.dagger;
 
-import android.database.sqlite.SQLiteDatabase;
-
 import com.google.common.eventbus.EventBus;
 
-import net.elprespufferfish.rssreader.DatabaseHelper;
 import net.elprespufferfish.rssreader.FeedManager;
 import net.elprespufferfish.rssreader.RssReaderApplication;
+import net.elprespufferfish.rssreader.db.DatabaseHelper;
 
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 import dagger.Module;

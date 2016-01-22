@@ -18,8 +18,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Closeables;
 import com.google.common.net.HttpHeaders;
 
-import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
-import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
+import net.elprespufferfish.rssreader.db.DatabaseHelper;
+import net.elprespufferfish.rssreader.db.DatabaseSchema;
+import net.elprespufferfish.rssreader.db.DatabaseSchema.ArticleTable;
+import net.elprespufferfish.rssreader.db.DatabaseSchema.FeedTable;
 import net.elprespufferfish.rssreader.net.HttpUrlConnectionFactory;
 import net.elprespufferfish.rssreader.parsing.Parser;
 import net.elprespufferfish.rssreader.parsing.ParserFactory;

@@ -1,4 +1,4 @@
-package net.elprespufferfish.rssreader;
+package net.elprespufferfish.rssreader.search;
 
 import static butterknife.ButterKnife.findById;
 
@@ -16,6 +16,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import net.elprespufferfish.rssreader.Article;
+import net.elprespufferfish.rssreader.db.DatabaseHelper;
+import net.elprespufferfish.rssreader.db.DatabaseSchema;
+import net.elprespufferfish.rssreader.R;
+import net.elprespufferfish.rssreader.RssReaderApplication;
+import net.elprespufferfish.rssreader.WebViewActivity;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;

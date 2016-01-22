@@ -7,8 +7,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import net.elprespufferfish.rssreader.DatabaseSchema.ArticleTable;
-import net.elprespufferfish.rssreader.DatabaseSchema.FeedTable;
+import net.elprespufferfish.rssreader.db.DatabaseHelper;
+import net.elprespufferfish.rssreader.db.DatabaseSchema;
+import net.elprespufferfish.rssreader.db.DatabaseSchema.ArticleTable;
+import net.elprespufferfish.rssreader.db.DatabaseSchema.FeedTable;
 
 public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 

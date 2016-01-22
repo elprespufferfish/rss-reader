@@ -25,11 +25,11 @@
             >
 
         <service
-            android:name=".RefreshService"
+            android:name=".refresh.RefreshService"
             android:exported="false"
             />
 
-        <receiver android:name=".BootBroadcastReceiver">
+        <receiver android:name=".refresh.BootBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
@@ -60,7 +60,7 @@
 
         <activity
             android:launchMode="singleTop"
-            android:name=".SearchResultsActivity"
+            android:name=".search.SearchResultsActivity"
             android:theme="@style/RssReader.Grey"
             >
 

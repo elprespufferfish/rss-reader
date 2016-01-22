@@ -1,4 +1,4 @@
-package net.elprespufferfish.rssreader;
+package net.elprespufferfish.rssreader.refresh;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -18,6 +18,13 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 
+import net.elprespufferfish.rssreader.db.DatabaseHelper;
+import net.elprespufferfish.rssreader.FeedManager;
+import net.elprespufferfish.rssreader.util.ForegroundStatus;
+import net.elprespufferfish.rssreader.MainActivity;
+import net.elprespufferfish.rssreader.R;
+import net.elprespufferfish.rssreader.RssReaderApplication;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +38,7 @@ import javax.inject.Inject;
  */
 public class RefreshService extends IntentService {
 
-    public static final String COMPLETION_NOTIFICATION = "net.elprespufferfish.rssreader.RefreshService.COMPLETION";
+    public static final String COMPLETION_NOTIFICATION = "net.elprespufferfish.rssreader.refresh.RefreshService.COMPLETION";
     public static final String FORCE_REFRESH = "force_refresh";
     public static final String WAS_REFRESH_STARTED = "was_refresh_started";
     public static final String DID_REFRESH_COMPLETE = "did_refresh_complete";

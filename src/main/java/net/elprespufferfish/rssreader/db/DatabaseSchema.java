@@ -1,4 +1,4 @@
-package net.elprespufferfish.rssreader;
+package net.elprespufferfish.rssreader.db;
 
 import android.provider.BaseColumns;
 

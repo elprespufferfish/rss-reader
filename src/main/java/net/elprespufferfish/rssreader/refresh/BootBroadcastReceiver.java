@@ -1,8 +1,10 @@
-package net.elprespufferfish.rssreader;
+package net.elprespufferfish.rssreader.refresh;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import net.elprespufferfish.rssreader.RssReaderApplication;
 
 /**
  * Ensure refreshes are scheduled after a device reboot.

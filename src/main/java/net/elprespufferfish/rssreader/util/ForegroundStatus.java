@@ -1,4 +1,4 @@
-package net.elprespufferfish.rssreader;
+package net.elprespufferfish.rssreader.util;
 
 import android.app.Activity;
 
