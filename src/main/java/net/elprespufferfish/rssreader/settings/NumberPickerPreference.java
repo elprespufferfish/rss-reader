@@ -9,6 +9,9 @@ import android.widget.NumberPicker;
 
 import net.elprespufferfish.rssreader.R;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 /**
  * Number picker dialog.
  *
@@ -16,7 +19,8 @@ import net.elprespufferfish.rssreader.R;
  */
 public class NumberPickerPreference extends DialogPreference {
 
-    private NumberPicker picker;
+    @Bind(R.id.number_picker)
+    NumberPicker picker;
     private int value;
 
     public NumberPickerPreference(Context context, AttributeSet attrs) {
@@ -33,7 +37,8 @@ public class NumberPickerPreference extends DialogPreference {
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
 
-        picker = (NumberPicker) view.findViewById(R.id.number_picker);
+        ButterKnife.bind(this, view);
+
         picker.setMinValue(1);
         picker.setMaxValue(31);
         picker.setValue(value);

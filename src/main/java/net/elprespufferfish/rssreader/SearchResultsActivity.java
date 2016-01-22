@@ -1,5 +1,7 @@
 package net.elprespufferfish.rssreader;
 
+import static butterknife.ButterKnife.findById;
+
 import android.app.SearchManager;
 import android.content.Intent;
 import android.database.Cursor;
@@ -21,6 +23,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 /**
  * Displays articles matching search query.
  *
@@ -30,7 +35,8 @@ public class SearchResultsActivity extends AppCompatActivity {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchResultsActivity.class);
 
-    private RecyclerView recyclerView;
+    @Bind(R.id.search_results)
+    RecyclerView recyclerView;
     private SQLiteDatabase database;
 
     @Override
@@ -38,10 +44,11 @@ public class SearchResultsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.search_results);
 
+        ButterKnife.bind(this);
+
         getSupportActionBar().setTitle(getString(R.string.search_results_title));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        recyclerView = (RecyclerView) findViewById(R.id.search_results);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -187,9 +194,10 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         public SearchResultsViewHolder(View itemView) {
             super(itemView);
-            card = (CardView) itemView.findViewById(R.id.card_view);
-            title = (TextView) itemView.findViewById(R.id.search_result_title);
-            feed = (TextView) itemView.findViewById(R.id.search_result_feed);
+
+            card = findById(itemView, R.id.card_view);
+            title = findById(itemView, R.id.search_result_title);
+            feed = findById(itemView, R.id.search_result_feed);
         }
 
     }

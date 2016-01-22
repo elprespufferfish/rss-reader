@@ -1,5 +1,7 @@
 package net.elprespufferfish.rssreader;
 
+import static butterknife.ButterKnife.findById;
+
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.app.SearchManager;
@@ -34,8 +36,8 @@ import android.widget.EditText;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
-import net.elprespufferfish.rssreader.util.ToggleableShareActionProvider;
 import net.elprespufferfish.rssreader.settings.SettingsActivity;
+import net.elprespufferfish.rssreader.util.ToggleableShareActionProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -61,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
             boolean didRefreshComplete = intent.getBooleanExtra(RefreshService.DID_REFRESH_COMPLETE, Boolean.FALSE);
             if (!didRefreshComplete) {
                 Snackbar.make(
-                        MainActivity.this.findViewById(R.id.pager),
+                        viewPager,
                         MainActivity.this.getString(R.string.refresh_failed),
                         Snackbar.LENGTH_LONG
                 ).show();
@@ -71,13 +76,13 @@ public class MainActivity extends AppCompatActivity {
             boolean wasRefreshStarted = intent.getBooleanExtra(RefreshService.WAS_REFRESH_STARTED, Boolean.FALSE);
             if (!wasRefreshStarted) {
                 Snackbar.make(
-                        MainActivity.this.findViewById(R.id.pager),
+                        viewPager,
                         R.string.refresh_already_started,
                         Snackbar.LENGTH_SHORT
                 ).show();
             } else {
                 Snackbar.make(
-                        MainActivity.this.findViewById(R.id.pager),
+                        viewPager,
                         R.string.refresh_complete,
                         Snackbar.LENGTH_SHORT
                 ).show();
@@ -87,10 +92,13 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private EventBus eventBus;
-    private DrawerLayout drawerLayout;
+    @Bind(R.id.drawer_layout)
+    DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
-    private ViewPager viewPager;
-    private Button nextButton;
+    @Bind(R.id.pager)
+    ViewPager viewPager;
+    @Bind(R.id.next)
+    Button nextButton;
     private ArticlePagerAdapter articlePagerAdapter;
     private ProgressDialog refreshDialog;
     private ToggleableShareActionProvider shareActionProvider;
@@ -103,18 +111,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
+        ButterKnife.bind(this);
+
         eventBus = RssReaderApplication.fromContext(this).getEventBus();
         eventBus.register(this);
 
         // set up left drawer
-        NavigationView navigationView = (NavigationView) findViewById(R.id.left_drawer);
+        NavigationView navigationView = findById(this, R.id.left_drawer);
         navigationView.setNavigationItemSelectedListener(new NavigationClickListener());
         isHidingReadArticles = getSharedPreferences(GLOBAL_PREFS, Context.MODE_PRIVATE).getBoolean(IS_HIDING_READ_ARTICLES_PREF, false);
         navigationView.getMenu().findItem(R.id.drawer_toggle_unread).setTitle(isHidingReadArticles ? R.string.show_unread_articles : R.string.hide_unread_articles);
         navigationView.getMenu().findItem(R.id.drawer_toggle_unread).setIcon(isHidingReadArticles ? R.drawable.ic_visibility_black_24dp : R.drawable.ic_visibility_off_black_24dp);
 
         // tie drawer to action bar
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerToggle = new ActionBarDrawerToggle(
                 this,
                 drawerLayout,
@@ -124,7 +133,6 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        nextButton = (Button) findViewById(R.id.next);
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -244,7 +252,6 @@ public class MainActivity extends AppCompatActivity {
         // switch to new feed
         currentFeed = feed;
 
-        viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.clearOnPageChangeListeners();
         if (articlePagerAdapter != null) {
             articlePagerAdapter.close();
@@ -350,13 +357,13 @@ public class MainActivity extends AppCompatActivity {
                 }
                 case R.id.drawer_add_feed: {
                     final View addFeedDialogView = getLayoutInflater().inflate(R.layout.add_feed_dialog, null);
-                    AlertDialog addFeedDialog = new AlertDialog.Builder(MainActivity.this)
+                    final AlertDialog addFeedDialog = new AlertDialog.Builder(MainActivity.this)
                             .setView(addFeedDialogView)
                             .setTitle(R.string.add_feed_title)
                             .setPositiveButton(R.string.add_feed_ok, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                     dialog.dismiss();;
-                                    EditText feedUrlInput = (EditText) addFeedDialogView.findViewById(R.id.feed_url);
+                                    EditText feedUrlInput = findById(addFeedDialogView, R.id.feed_url);
                                     String feedUrl = feedUrlInput.getText().toString();
 
                                     // default protocol to https
@@ -451,7 +458,7 @@ public class MainActivity extends AppCompatActivity {
                                     Feed feedToRemove = feeds.get(selectedPosition);
                                     FeedManager.getInstance().removeFeed(feedToRemove);
                                     Snackbar.make(
-                                            findViewById(R.id.pager),
+                                            viewPager,
                                             getString(R.string.remove_feed_complete, feedToRemove.getName()),
                                             Snackbar.LENGTH_LONG
                                     ).show();

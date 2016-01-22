@@ -1,5 +1,7 @@
 package net.elprespufferfish.rssreader;
 
+import static butterknife.ButterKnife.findById;
+
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,6 +21,9 @@ import android.widget.ProgressBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 /**
  * WebView activity to show article content.
  *
@@ -31,7 +36,8 @@ public class WebViewActivity extends AppCompatActivity {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebViewActivity.class);
 
     private ShareActionProvider shareActionProvider;
-    private WebView webView;
+    @Bind(R.id.webview)
+    WebView webView;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -39,11 +45,12 @@ public class WebViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.article_content);
 
+        ButterKnife.bind(this);
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progress_bar);
+        final ProgressBar progressBar = findById(this, R.id.progress_bar);
 
-        webView = (WebView) findViewById(R.id.webview);
         webView.getSettings().setJavaScriptEnabled(true);
 
         // allow zooming

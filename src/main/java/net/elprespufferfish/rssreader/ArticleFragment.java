@@ -24,6 +24,9 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 public class ArticleFragment extends Fragment {
 
     public static final String ARTICLE_FEED_URL_KEY = "article_feed_url";
@@ -34,10 +37,15 @@ public class ArticleFragment extends Fragment {
     private static final String ARTICLE_KEY = "article";
 
     private EventBus eventBus;
-    private View view;
     private int articleIndex;
     private int lastSelected = -1;
     private Article article;
+    @Bind(R.id.title)
+    TextView titleView;
+    @Bind(R.id.image)
+    ImageView imageView;
+    @Bind(R.id.description)
+    WebView webView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -52,7 +60,10 @@ public class ArticleFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.article_fragment, container, false);
+        View view = inflater.inflate(R.layout.article_fragment, container, false);
+
+        ButterKnife.bind(this, view);
+
         if (article != null) {
             onArticleLoad(article);
         } else {
@@ -74,6 +85,13 @@ public class ArticleFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         eventBus.unregister(this);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        ButterKnife.unbind(this);
     }
 
     /**
@@ -98,7 +116,6 @@ public class ArticleFragment extends Fragment {
             eventBus.post(new ArticleLoadedEvent(articleIndex, article));
         }
 
-        TextView titleView = ((TextView) view.findViewById(R.id.title));
         titleView.setText(article.getTitle());
         titleView.setClickable(true);
         titleView.setOnClickListener(new OnClickListener() {
@@ -111,8 +128,6 @@ public class ArticleFragment extends Fragment {
         });
 
         String imageUrl = article.getImageUrl();
-        ImageView imageView = (ImageView) view.findViewById(R.id.image);
-        WebView webView = (WebView) view.findViewById(R.id.description);
         if (imageUrl != null) {
             LOGGER.debug("Displaying ImageView");
             imageView.setVisibility(ImageView.VISIBLE);
