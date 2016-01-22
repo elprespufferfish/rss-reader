@@ -78,7 +78,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
 
         String query = intent.getStringExtra(SearchManager.QUERY);
-        LOGGER.info("Received query: {}", query);
+        LOGGER.debug("Received query: {}", query);
         new SearchTask().execute(query);
     }
 

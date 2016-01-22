@@ -21,6 +21,7 @@ import net.elprespufferfish.rssreader.util.LoggingActivityLifecycleCallbacks;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.impl.HandroidLoggerAdapter;
 
 import java.util.Calendar;
 
@@ -37,6 +38,8 @@ public class RssReaderApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        HandroidLoggerAdapter.DEBUG = BuildConfig.DEBUG;
 
         applicationComponent = DaggerApplicationComponent.builder()
                 .applicationModule(new ApplicationModule(this))

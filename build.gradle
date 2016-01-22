@@ -48,6 +48,7 @@ android {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -63,8 +64,8 @@ dependencies {
     compile 'com.jakewharton:butterknife:7.0.1'
     compile 'joda-time:joda-time:2.8.1'
     compile 'org.jsoup:jsoup:1.8.3'
-    compile 'org.slf4j:slf4j-android:1.7.12'
-    compile 'org.slf4j:slf4j-api:1.7.12'
+    compile 'org.slf4j:slf4j-api:1.7.13'
+    compile 'org.slf4j:slf4j-handroid:1.7.13'
 
     provided 'org.glassfish:javax.annotation:10.0-b28'
 

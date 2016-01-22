@@ -17,38 +17,38 @@ public class LoggingActivityLifecycleCallbacks implements Application.ActivityLi
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        LoggerFactory.getLogger(activity.getClass()).info("onActivityCreated");
+        LoggerFactory.getLogger(activity.getClass()).debug("onActivityCreated");
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-        LoggerFactory.getLogger(activity.getClass()).info("onActivityStarted");
+        LoggerFactory.getLogger(activity.getClass()).debug("onActivityStarted");
 
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
-        LoggerFactory.getLogger(activity.getClass()).info("onActivityResumed");
+        LoggerFactory.getLogger(activity.getClass()).debug("onActivityResumed");
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-        LoggerFactory.getLogger(activity.getClass()).info("onActivityPaused");
+        LoggerFactory.getLogger(activity.getClass()).debug("onActivityPaused");
     }
 
     @Override
     public void onActivityStopped(Activity activity) {
-        LoggerFactory.getLogger(activity.getClass()).info("onActivityStopped");
+        LoggerFactory.getLogger(activity.getClass()).debug("onActivityStopped");
     }
 
     @Override
     public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        LoggerFactory.getLogger(activity.getClass()).info("onActivitySaveInstanceState");
+        LoggerFactory.getLogger(activity.getClass()).debug("onActivitySaveInstanceState");
     }
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        LoggerFactory.getLogger(activity.getClass()).info("onActivityDestroyed");
+        LoggerFactory.getLogger(activity.getClass()).debug("onActivityDestroyed");
     }
 
 }
