@@ -45,6 +45,12 @@ public class WebViewActivity extends AppCompatActivity {
 
         webView = (WebView) findViewById(R.id.webview);
         webView.getSettings().setJavaScriptEnabled(true);
+
+        // allow zooming
+        webView.getSettings().setBuiltInZoomControls(true);
+        // but don't display the controls
+        webView.getSettings().setDisplayZoomControls(false);
+
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
