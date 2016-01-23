@@ -52,8 +52,8 @@
     <string name="hide_unread_articles">Hide Read Articles</string>
     <string name="show_unread_articles">Show Read Articles</string>
 
-    <string name="no_articles">No new articles.  Do you need to refresh?</string>
-    <string name="end_of_the_line">No more articles to read!</string>
+    <string name="end_of_the_line">No more articles to read.  Do you need to refresh?</string>
+    <string name="refresh_prompt">refresh</string>
 
     <string name="search_results_title">Search Results</string>
     <string name="no_search_results">No Matching Articles Found!</string>

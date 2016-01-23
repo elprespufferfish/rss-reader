@@ -10,6 +10,8 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:gravity="center"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
         android:text="@string/end_of_the_line"
         android:textSize="24sp"
         />

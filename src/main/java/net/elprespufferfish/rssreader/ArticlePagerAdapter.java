@@ -81,12 +81,8 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getCount() {
-        if (count > 0) {
-            // add an extra item for the 'end of the line' message
-            return count + 1;
-        } else {
-            return count;
-        }
+        // add an extra item for the 'end of the line' message
+        return count + 1;
     }
 
 }

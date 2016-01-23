@@ -307,10 +307,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         if (articlePagerAdapter.getCount() == 0) {
-            findViewById(R.id.no_articles).setVisibility(View.VISIBLE);
             MainActivity.this.getSupportActionBar().setTitle(R.string.app_name);
-        } else {
-            findViewById(R.id.no_articles).setVisibility(View.INVISIBLE);
         }
 
         // rebuild menu to enable/disable the share button
@@ -347,6 +344,13 @@ public class MainActivity extends AppCompatActivity {
         shareActionProvider.setShareIntent(intent);
     }
 
+    public void refresh() {
+        refreshDialog.show();
+        Intent refreshIntent = new Intent(this, RefreshService.class);
+        refreshIntent.putExtra(RefreshService.FORCE_REFRESH, Boolean.TRUE);
+        startService(refreshIntent);
+    }
+
     private class NavigationClickListener implements NavigationView.OnNavigationItemSelectedListener {
 
         @SuppressLint("InflateParams")
@@ -354,10 +358,7 @@ public class MainActivity extends AppCompatActivity {
         public boolean onNavigationItemSelected(MenuItem menuItem) {
             switch (menuItem.getItemId()) {
                 case R.id.drawer_refresh: {
-                    refreshDialog.show();
-                    Intent refreshIntent = new Intent(MainActivity.this, RefreshService.class);
-                    refreshIntent.putExtra(RefreshService.FORCE_REFRESH, Boolean.TRUE);
-                    MainActivity.this.startService(refreshIntent);
+                    refresh();
                     drawerLayout.closeDrawers();
                     break;
                 }
