@@ -18,7 +18,6 @@
     <string name="loading_articles">Loading new articles&#8230;</string>
     <string name="refresh_failed">Refresh Failed</string>
     <string name="refresh_already_started">Refresh Already in Progress&#8230;</string>
-    <string name="refresh_complete">Refresh Complete</string>
     <string name="refresh_notification_title">RSS Refresh in Progress</string>
     <string name="refresh_notification_text">RSS Reader is refreshing your feeds</string>
     <string name="drawer_open">Open Drawer</string>

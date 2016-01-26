@@ -86,12 +86,7 @@ public class MainActivity extends AppCompatActivity {
                         Snackbar.LENGTH_SHORT
                 ).show();
             } else {
-                Snackbar.make(
-                        viewPager,
-                        R.string.refresh_complete,
-                        Snackbar.LENGTH_SHORT
-                ).show();
-                MainActivity.this.reloadPager(nullFeed);
+                reloadPager(nullFeed);
             }
         }
     };
