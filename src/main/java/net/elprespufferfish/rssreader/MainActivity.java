@@ -348,7 +348,6 @@ public class MainActivity extends AppCompatActivity {
 
     private class NavigationClickListener implements NavigationView.OnNavigationItemSelectedListener {
 
-        @SuppressLint("InflateParams")
         @Override
         public boolean onNavigationItemSelected(MenuItem menuItem) {
             switch (menuItem.getItemId()) {
@@ -358,129 +357,15 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.drawer_add_feed: {
-                    final View addFeedDialogView = getLayoutInflater().inflate(R.layout.add_feed_dialog, null);
-                    final AlertDialog addFeedDialog = new AlertDialog.Builder(MainActivity.this)
-                            .setView(addFeedDialogView)
-                            .setTitle(R.string.add_feed_title)
-                            .setPositiveButton(R.string.add_feed_ok, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.dismiss();;
-                                    EditText feedUrlInput = findById(addFeedDialogView, R.id.feed_url);
-                                    String feedUrl = feedUrlInput.getText().toString();
-
-                                    // default protocol to https
-                                    if (!URL_PATTERN.matcher(feedUrl).matches() ) {
-                                        feedUrl = "https://" + feedUrl;
-                                    }
-
-                                    new AddFeedTask(MainActivity.this, feedManager).execute(feedUrl);
-                                }
-                            })
-                            .setNegativeButton(R.string.add_feed_cancel, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                }
-                            })
-                            .create();
-                    addFeedDialog.show();
+                    addFeed();
                     break;
                 }
                 case R.id.drawer_view_feed: {
-                    Map<Feed, Integer> feeds = feedManager.getUnreadArticleCounts();
-
-                    final Map<Feed, Integer> allFeeds = new LinkedHashMap<>();
-                    int totalUnread = 0;
-                    for (Integer numUnread : feeds.values()) {
-                        totalUnread += numUnread;
-                    }
-                    allFeeds.put(nullFeed, totalUnread);
-                    allFeeds.putAll(feeds);
-
-                    int currentFeedIndex = 0;
-                    int index = 0;
-                    List<String> feedNames = new ArrayList<>(allFeeds.size());
-                    for (Map.Entry<Feed, Integer> entry : allFeeds.entrySet()) {
-                        Feed feed = entry.getKey();
-                        feedNames.add(feed.getName() + " (" + entry.getValue() + ")");
-
-                        if (feed.equals(currentFeed)) {
-                            currentFeedIndex = index;
-                        }
-                        index++;
-                    }
-
-                    AlertDialog viewFeedDialog = new AlertDialog.Builder(MainActivity.this)
-                            .setTitle(R.string.view_feed_title)
-                            .setSingleChoiceItems(feedNames.toArray(new String[0]), currentFeedIndex, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
-
-                                    Feed selectedFeed = null;
-                                    int index = 0;
-                                    for (Feed feed : allFeeds.keySet()) {
-                                        if (index++ == selectedPosition) {
-                                            selectedFeed = feed;
-                                            break;
-                                        }
-                                    }
-                                    if (selectedFeed == null) {
-                                        throw new AssertionError("Could not determine selected feed at position " + selectedPosition + " from " + allFeeds);
-                                    }
-
-                                    drawerLayout.closeDrawers();
-                                    reloadPager(selectedFeed);
-                                }
-                            })
-                            .create();
-                    viewFeedDialog.show();
+                    viewFeed();
                     break;
                 }
                 case R.id.drawer_remove_feed: {
-                    final List<Feed> feeds = feedManager.getAllFeeds();
-
-                    List<String> feedNames = new ArrayList<>(feeds.size());
-                    for (Feed feed : feeds) {
-                        feedNames.add(feed.getName());
-                    }
-                    AlertDialog viewFeedDialog = new AlertDialog.Builder(MainActivity.this)
-                            .setTitle(R.string.remove_feed_title)
-                            .setSingleChoiceItems(feedNames.toArray(new String[0]), -1, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // no-op
-                                }
-                            })
-                            .setPositiveButton(R.string.remove_feed_ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
-                                    Feed feedToRemove = feeds.get(selectedPosition);
-                                    feedManager.removeFeed(feedToRemove);
-                                    Snackbar.make(
-                                            viewPager,
-                                            getString(R.string.remove_feed_complete, feedToRemove.getName()),
-                                            Snackbar.LENGTH_LONG
-                                    ).show();
-                                    drawerLayout.closeDrawers();
-
-                                    if (currentFeed.equals(feedToRemove)) {
-                                        reloadPager(nullFeed);
-                                    } else {
-                                        reloadPager(currentFeed);
-                                    }
-                                }
-                            })
-                            .setNegativeButton(R.string.remove_feed_cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.cancel();
-                                }
-                            })
-                            .create();
-                    viewFeedDialog.show();
+                    removeFeed();
                     break;
                 }
                 case R.id.drawer_mark_all_read: {
@@ -489,16 +374,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case R.id.drawer_toggle_unread: {
-                    isHidingReadArticles = !isHidingReadArticles;
-
-                    SharedPreferences.Editor editor = getSharedPreferences(GLOBAL_PREFS, Context.MODE_PRIVATE).edit();
-                    editor.putBoolean(IS_HIDING_READ_ARTICLES_PREF, isHidingReadArticles);
-                    editor.apply();
-
-                    menuItem.setTitle(isHidingReadArticles ? R.string.show_unread_articles : R.string.hide_unread_articles);
-                    menuItem.setIcon(isHidingReadArticles ? R.drawable.ic_visibility_black_24dp : R.drawable.ic_visibility_off_black_24dp);
-                    reloadPager(currentFeed);
-
+                    toggleUnread(menuItem);
                     drawerLayout.closeDrawers();
                     break;
                 }
@@ -511,6 +387,145 @@ public class MainActivity extends AppCompatActivity {
                     throw new IllegalArgumentException("Unexpected menu item: " + menuItem);
             }
             return true;
+        }
+
+        @SuppressLint("InflateParams")
+        private void addFeed() {
+            final View addFeedDialogView = getLayoutInflater().inflate(R.layout.add_feed_dialog, null);
+            final AlertDialog addFeedDialog = new AlertDialog.Builder(MainActivity.this)
+                    .setView(addFeedDialogView)
+                    .setTitle(R.string.add_feed_title)
+                    .setPositiveButton(R.string.add_feed_ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.dismiss();;
+                            EditText feedUrlInput = findById(addFeedDialogView, R.id.feed_url);
+                            String feedUrl = feedUrlInput.getText().toString();
+
+                            // default protocol to https
+                            if (!URL_PATTERN.matcher(feedUrl).matches() ) {
+                                feedUrl = "https://" + feedUrl;
+                            }
+
+                            new AddFeedTask(MainActivity.this, feedManager).execute(feedUrl);
+                        }
+                    })
+                    .setNegativeButton(R.string.add_feed_cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .create();
+            addFeedDialog.show();
+        }
+
+        private void viewFeed() {
+            Map<Feed, Integer> feeds = feedManager.getUnreadArticleCounts();
+
+            final Map<Feed, Integer> allFeeds = new LinkedHashMap<>();
+            int totalUnread = 0;
+            for (Integer numUnread : feeds.values()) {
+                totalUnread += numUnread;
+            }
+            allFeeds.put(nullFeed, totalUnread);
+            allFeeds.putAll(feeds);
+
+            int currentFeedIndex = 0;
+            int index = 0;
+            List<String> feedNames = new ArrayList<>(allFeeds.size());
+            for (Map.Entry<Feed, Integer> entry : allFeeds.entrySet()) {
+                Feed feed = entry.getKey();
+                feedNames.add(feed.getName() + " (" + entry.getValue() + ")");
+
+                if (feed.equals(currentFeed)) {
+                    currentFeedIndex = index;
+                }
+                index++;
+            }
+
+            AlertDialog viewFeedDialog = new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(R.string.view_feed_title)
+                    .setSingleChoiceItems(feedNames.toArray(new String[0]), currentFeedIndex, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                            int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+
+                            Feed selectedFeed = null;
+                            int index = 0;
+                            for (Feed feed : allFeeds.keySet()) {
+                                if (index++ == selectedPosition) {
+                                    selectedFeed = feed;
+                                    break;
+                                }
+                            }
+                            if (selectedFeed == null) {
+                                throw new AssertionError("Could not determine selected feed at position " + selectedPosition + " from " + allFeeds);
+                            }
+
+                            drawerLayout.closeDrawers();
+                            reloadPager(selectedFeed);
+                        }
+                    })
+                    .create();
+            viewFeedDialog.show();
+        }
+
+        private void removeFeed() {
+            final List<Feed> feeds = feedManager.getAllFeeds();
+
+            List<String> feedNames = new ArrayList<>(feeds.size());
+            for (Feed feed : feeds) {
+                feedNames.add(feed.getName());
+            }
+            AlertDialog viewFeedDialog = new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(R.string.remove_feed_title)
+                    .setSingleChoiceItems(feedNames.toArray(new String[0]), -1, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // no-op
+                        }
+                    })
+                    .setPositiveButton(R.string.remove_feed_ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                            int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                            Feed feedToRemove = feeds.get(selectedPosition);
+                            feedManager.removeFeed(feedToRemove);
+                            Snackbar.make(
+                                    viewPager,
+                                    getString(R.string.remove_feed_complete, feedToRemove.getName()),
+                                    Snackbar.LENGTH_LONG
+                            ).show();
+                            drawerLayout.closeDrawers();
+
+                            if (currentFeed.equals(feedToRemove)) {
+                                reloadPager(nullFeed);
+                            } else {
+                                reloadPager(currentFeed);
+                            }
+                        }
+                    })
+                    .setNegativeButton(R.string.remove_feed_cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    })
+                    .create();
+            viewFeedDialog.show();
+        }
+
+        private void toggleUnread(MenuItem menuItem) {
+            isHidingReadArticles = !isHidingReadArticles;
+
+            SharedPreferences.Editor editor = getSharedPreferences(GLOBAL_PREFS, Context.MODE_PRIVATE).edit();
+            editor.putBoolean(IS_HIDING_READ_ARTICLES_PREF, isHidingReadArticles);
+            editor.apply();
+
+            menuItem.setTitle(isHidingReadArticles ? R.string.show_unread_articles : R.string.hide_unread_articles);
+            menuItem.setIcon(isHidingReadArticles ? R.drawable.ic_visibility_black_24dp : R.drawable.ic_visibility_off_black_24dp);
+            reloadPager(currentFeed);
         }
 
     }
