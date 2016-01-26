@@ -20,6 +20,7 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
      * NOTE: May be null to represent 'all feeds'.
      */
     private final String feedUrl;
+    private final int numFeeds;
     private final int count;
     private final boolean isHidingReadArticles;
 
@@ -31,10 +32,15 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
         this.databaseHelper = databaseHelper;
         this.feedUrl = feedUrl;
         this.isHidingReadArticles = isHidingReadArticles;
+        this.numFeeds = getNumFeeds();
         this.count = computeCount();
     }
 
     private int computeCount() {
+        if (numFeeds == 0) {
+            return 1;
+        }
+
         String[] selectionArgs = new String[0];
         String query = "SELECT COUNT(*)"
                 + "FROM " + ArticleTable.TABLE_NAME + " ";
@@ -63,8 +69,25 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
         }
     }
 
+    private int getNumFeeds() {
+        SQLiteDatabase database = databaseHelper.getReadableDatabase();
+        try {
+            String query = "SELECT COUNT(*) FROM " + FeedTable.TABLE_NAME;
+            Cursor cursor = database.rawQuery(query, null);
+            cursor.moveToFirst();
+            int count = cursor.getInt(0);
+            cursor.close();
+            return count;
+        } finally {
+            database.close();
+        }
+    }
+
     @Override
     public Fragment getItem(int index) {
+        if (numFeeds == 0) {
+            return new NoFeedsFragment();
+        }
         if (index == count) {
             return new EndOfLineFragment();
         }
@@ -81,6 +104,9 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getCount() {
+        if (numFeeds == 0) {
+            return 1;
+        }
         // add an extra item for the 'end of the line' message
         return count + 1;
     }

@@ -51,6 +51,9 @@
     <string name="hide_unread_articles">Hide Read Articles</string>
     <string name="show_unread_articles">Show Read Articles</string>
 
+    <string name="no_feeds_added">You haven\'t added any feeds.  Would you like to add one?</string>
+    <string name="add_feed_prompt">add one</string>
+
     <string name="end_of_the_line">No more articles to read.  Do you need to refresh?</string>
     <string name="refresh_prompt">refresh</string>
 

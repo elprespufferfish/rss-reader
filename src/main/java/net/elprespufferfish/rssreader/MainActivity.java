@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
@@ -280,7 +281,10 @@ public class MainActivity extends AppCompatActivity {
                     nextButton.setVisibility(View.GONE);
                 }
 
-                if (articlePagerAdapter.getItem(position) instanceof EndOfLineFragment) {
+                Fragment fragment = articlePagerAdapter.getItem(position);
+
+                if (fragment instanceof NoFeedsFragment
+                        || fragment instanceof EndOfLineFragment) {
                     getSupportActionBar().setTitle(R.string.app_name);
                     shareActionProvider.hide();
                     return;
@@ -350,6 +354,35 @@ public class MainActivity extends AppCompatActivity {
         startService(refreshIntent);
     }
 
+    @SuppressLint("InflateParams")
+    public void addFeed() {
+        final View addFeedDialogView = getLayoutInflater().inflate(R.layout.add_feed_dialog, null);
+        final AlertDialog addFeedDialog = new AlertDialog.Builder(MainActivity.this)
+                .setView(addFeedDialogView)
+                .setTitle(R.string.add_feed_title)
+                .setPositiveButton(R.string.add_feed_ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();;
+                        EditText feedUrlInput = findById(addFeedDialogView, R.id.feed_url);
+                        String feedUrl = feedUrlInput.getText().toString();
+
+                        // default protocol to https
+                        if (!URL_PATTERN.matcher(feedUrl).matches() ) {
+                            feedUrl = "https://" + feedUrl;
+                        }
+
+                        new AddFeedTask(MainActivity.this, feedFetcher, feedManager).execute(feedUrl);
+                    }
+                })
+                .setNegativeButton(R.string.add_feed_cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                })
+                .create();
+        addFeedDialog.show();
+    }
+
     private class NavigationClickListener implements NavigationView.OnNavigationItemSelectedListener {
 
         @Override
@@ -391,35 +424,6 @@ public class MainActivity extends AppCompatActivity {
                     throw new IllegalArgumentException("Unexpected menu item: " + menuItem);
             }
             return true;
-        }
-
-        @SuppressLint("InflateParams")
-        private void addFeed() {
-            final View addFeedDialogView = getLayoutInflater().inflate(R.layout.add_feed_dialog, null);
-            final AlertDialog addFeedDialog = new AlertDialog.Builder(MainActivity.this)
-                    .setView(addFeedDialogView)
-                    .setTitle(R.string.add_feed_title)
-                    .setPositiveButton(R.string.add_feed_ok, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.dismiss();;
-                            EditText feedUrlInput = findById(addFeedDialogView, R.id.feed_url);
-                            String feedUrl = feedUrlInput.getText().toString();
-
-                            // default protocol to https
-                            if (!URL_PATTERN.matcher(feedUrl).matches() ) {
-                                feedUrl = "https://" + feedUrl;
-                            }
-
-                            new AddFeedTask(MainActivity.this, feedFetcher, feedManager).execute(feedUrl);
-                        }
-                    })
-                    .setNegativeButton(R.string.add_feed_cancel, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    })
-                    .create();
-            addFeedDialog.show();
         }
 
         private void viewFeed() {
