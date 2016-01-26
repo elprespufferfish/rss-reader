@@ -9,8 +9,8 @@ import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 
 import net.elprespufferfish.rssreader.Feed;
-import net.elprespufferfish.rssreader.FeedAlreadyAddedException;
-import net.elprespufferfish.rssreader.FeedManager;
+import net.elprespufferfish.rssreader.db.FeedAlreadyAddedException;
+import net.elprespufferfish.rssreader.db.FeedManager;
 import net.elprespufferfish.rssreader.RssReaderApplication;
 
 import org.json.JSONArray;

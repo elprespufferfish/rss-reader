@@ -18,8 +18,8 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 
+import net.elprespufferfish.rssreader.net.FeedFetcher;
 import net.elprespufferfish.rssreader.db.DatabaseHelper;
-import net.elprespufferfish.rssreader.FeedManager;
 import net.elprespufferfish.rssreader.util.ForegroundStatus;
 import net.elprespufferfish.rssreader.MainActivity;
 import net.elprespufferfish.rssreader.R;
@@ -55,7 +55,7 @@ public class RefreshService extends IntentService {
     private final IBinder binder = new RefreshServiceBinder();
     private final AtomicBoolean isRefreshInProgress = new AtomicBoolean(false);
     @Inject
-    FeedManager feedManager;
+    FeedFetcher feedFetcher;
     @Inject
     DatabaseHelper databaseHelper;
 
@@ -105,7 +105,7 @@ public class RefreshService extends IntentService {
         boolean didRefreshComplete = false;
         boolean wasRefreshStarted = false;
         try {
-            wasRefreshStarted = feedManager.refresh();
+            wasRefreshStarted = feedFetcher.refresh();
             didRefreshComplete = true;
 
             if (!forceRefresh) {

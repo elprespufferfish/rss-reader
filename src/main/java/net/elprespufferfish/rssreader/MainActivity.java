@@ -37,6 +37,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import net.elprespufferfish.rssreader.db.DatabaseHelper;
+import net.elprespufferfish.rssreader.db.FeedManager;
+import net.elprespufferfish.rssreader.net.FeedFetcher;
 import net.elprespufferfish.rssreader.refresh.RefreshService;
 import net.elprespufferfish.rssreader.search.SearchResultsActivity;
 import net.elprespufferfish.rssreader.settings.SettingsActivity;
@@ -93,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Inject
     EventBus eventBus;
+    @Inject
+    FeedFetcher feedFetcher;
     @Inject
     FeedManager feedManager;
     @Inject
@@ -154,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
         if (Intent.ACTION_SEND.equals(intent.getAction())) {
             if ("text/plain".equals(intent.getType())) {
                 String address = intent.getStringExtra(Intent.EXTRA_TEXT);
-                new AddFeedTask(this, feedManager).execute(address);
+                new AddFeedTask(this, feedFetcher, feedManager).execute(address);
             }
         }
 
@@ -406,7 +410,7 @@ public class MainActivity extends AppCompatActivity {
                                 feedUrl = "https://" + feedUrl;
                             }
 
-                            new AddFeedTask(MainActivity.this, feedManager).execute(feedUrl);
+                            new AddFeedTask(MainActivity.this, feedFetcher, feedManager).execute(feedUrl);
                         }
                     })
                     .setNegativeButton(R.string.add_feed_cancel, new DialogInterface.OnClickListener() {

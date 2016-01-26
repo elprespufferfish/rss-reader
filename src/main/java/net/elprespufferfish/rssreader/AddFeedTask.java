@@ -6,6 +6,10 @@ import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 
+import net.elprespufferfish.rssreader.db.FeedAlreadyAddedException;
+import net.elprespufferfish.rssreader.db.FeedManager;
+import net.elprespufferfish.rssreader.net.FeedFetcher;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,12 +27,14 @@ class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AddFeedTask.class);
 
     private final MainActivity context;
+    private final FeedFetcher feedFetcher;
     private final FeedManager feedManager;
     private ProgressDialog progressDialog;
     private Exception exception;
 
-    public AddFeedTask(MainActivity context, FeedManager feedManager) {
+    public AddFeedTask(MainActivity context, FeedFetcher feedFetcher, FeedManager feedManager) {
         this.context = context;
+        this.feedFetcher = feedFetcher;
         this.feedManager = feedManager;
     }
 
@@ -44,7 +50,7 @@ class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
         }
         String feedUrl = params[0];
         try {
-            List<Feed> feeds = feedManager.getFeeds(feedUrl);
+            List<Feed> feeds = feedFetcher.getFeeds(feedUrl);
             if (feeds.size() == 1) {
                 // only one feed, just add it
                 Feed feed = feeds.get(0);

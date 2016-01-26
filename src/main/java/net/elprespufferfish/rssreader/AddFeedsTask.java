@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 
+import net.elprespufferfish.rssreader.db.FeedAlreadyAddedException;
+import net.elprespufferfish.rssreader.db.FeedManager;
+
 /**
  * Add multiple feeds in the background.
  */
