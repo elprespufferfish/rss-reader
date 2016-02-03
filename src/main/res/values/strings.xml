@@ -12,6 +12,7 @@
     <string name="search_title">Search Articles</string>
     <string name="search_hint">Search Articles</string>
     <string name="action_share">Share Article</string>
+    <string name="action_open_in_browser">Open in Browser</string>
 
     <string name="next">Next Article</string>
 

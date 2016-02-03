@@ -13,4 +13,11 @@
         android:title="@string/action_share"
         />
 
+    <item
+        android:icon="@drawable/ic_open_in_browser_black_24dp"
+        android:id="@+id/action_open_in_browser"
+        yourapp:showAsAction="ifRoom"
+        android:title="@string/action_open_in_browser"
+        />
+
 </menu>

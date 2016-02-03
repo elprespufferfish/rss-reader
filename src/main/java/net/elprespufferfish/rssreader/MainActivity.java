@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -94,6 +95,15 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private ActionBarDrawerToggle drawerToggle;
+    private ArticlePagerAdapter articlePagerAdapter;
+    private ProgressDialog refreshDialog;
+    private ToggleableShareActionProvider shareActionProvider;
+    private Feed nullFeed; // sentinel Feed to select 'all' feeds
+    private Feed currentFeed;
+    private boolean isHidingReadArticles = false;
+    private MenuItem openInBrowserItem;
+
     @Inject
     EventBus eventBus;
     @Inject
@@ -104,17 +114,10 @@ public class MainActivity extends AppCompatActivity {
     DatabaseHelper databaseHelper;
     @Bind(R.id.drawer_layout)
     DrawerLayout drawerLayout;
-    private ActionBarDrawerToggle drawerToggle;
     @Bind(R.id.pager)
     ViewPager viewPager;
     @Bind(R.id.next)
     Button nextButton;
-    private ArticlePagerAdapter articlePagerAdapter;
-    private ProgressDialog refreshDialog;
-    private ToggleableShareActionProvider shareActionProvider;
-    private Feed nullFeed; // sentinel Feed to select 'all' feeds
-    private Feed currentFeed;
-    private boolean isHidingReadArticles = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -192,8 +195,13 @@ public class MainActivity extends AppCompatActivity {
 
         MenuItem shareItem = menu.findItem(R.id.action_share);
         MenuItemCompat.setActionProvider(shareItem, shareActionProvider);
-        if (this.articlePagerAdapter.getCount() == 0) {
+        if (articlePagerAdapter.getCount() == 0) {
             shareItem.setVisible(false);
+        }
+
+        openInBrowserItem = menu.findItem(R.id.action_open_in_browser);
+        if (articlePagerAdapter.getCount() == 0) {
+            openInBrowserItem.setVisible(false);
         }
 
         return super.onCreateOptionsMenu(menu);
@@ -287,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
                         || fragment instanceof EndOfLineFragment) {
                     getSupportActionBar().setTitle(R.string.app_name);
                     shareActionProvider.hide();
+                    openInBrowserItem.setVisible(false);
                     return;
                 }
 
@@ -345,6 +354,14 @@ public class MainActivity extends AppCompatActivity {
         intent.setType("text/plain");
 
         shareActionProvider.setShareIntent(intent);
+
+        openInBrowserItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(article.getLink())));
+                return true;
+            }
+        });
     }
 
     public void refresh() {

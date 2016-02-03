@@ -4,6 +4,7 @@ import static butterknife.ButterKnife.findById;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -36,6 +37,7 @@ public class WebViewActivity extends AppCompatActivity {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebViewActivity.class);
 
     private ShareActionProvider shareActionProvider;
+
     @Bind(R.id.webview)
     WebView webView;
 
@@ -90,6 +92,16 @@ public class WebViewActivity extends AppCompatActivity {
 
         MenuItem shareItem = menu.findItem(R.id.action_share);
         MenuItemCompat.setActionProvider(shareItem, shareActionProvider);
+
+        MenuItem openInBrowserItem = menu.findItem(R.id.action_open_in_browser);
+        openInBrowserItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(webView.getUrl()));
+                startActivity(intent);
+                return true;
+            }
+        });
 
         return super.onCreateOptionsMenu(menu);
     }
