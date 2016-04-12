@@ -72,7 +72,7 @@ class AddFeedTask extends AsyncTask<String, Void, List<Feed>> {
             if (exception instanceof FeedAlreadyAddedException) {
                 Snackbar.make(
                         context.findViewById(R.id.pager),
-                        context.getString(R.string.feed_already_present, exception.getMessage()),
+                        R.string.feed_already_present,
                         Snackbar.LENGTH_SHORT
                 ).show();
             } else {
